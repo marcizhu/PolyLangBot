@@ -1,13 +1,11 @@
-import functools
-import math
+import functools # functools.reduce()
+import math      # math.sqrt()
 
 # - Check whether a point is inside another convex polygon.
 # - Check whether a convex polygon is inside another convex polygon.
 # - Check if a convex polygon is regular.
 # - Compute the intersection of two convex polygons.
-# - Compute the convex union of two convex polygons.
 # - Draw convex polygons (with colors) in a PNG image.
-
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
 # Specification and documentation of its public operations.
@@ -42,7 +40,7 @@ class ConvexPolygon:
         Returns the perimeter of the polygon
         """
         # Uses Pythagoras' Theorem to calculate distance between all adjacent points, then adds them up
-        return sum([math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) for ((x0, y0), (x1, y1)) in self._segments()])
+        return sum([math.sqrt((x0 - x1)**2 + (y0 - y1)**2) for ((x0, y0), (x1, y1)) in self._segments()])
 
 
     def centroid(self):
@@ -68,6 +66,13 @@ class ConvexPolygon:
         y_max = max(y_coord)
 
         return ConvexPolygon([[x_min, y_min], [x_max, y_min], [x_max, y_max], [x_min, y_max]])
+
+
+    def union(self, other):
+        """
+        Computes the convex union of this and the other given polygons
+        """
+        return ConvexPolygon(self.points + other.points)
 
 
     def get_vertices(self):
