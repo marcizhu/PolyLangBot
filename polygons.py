@@ -1,10 +1,8 @@
 import functools
+import math
 
 # - Check whether a point is inside another convex polygon.
 # - Check whether a convex polygon is inside another convex polygon.
-# - Get the length of the perimeter of a convex polygon.
-# - Get the area of a convex polygon.
-# - Get the coordinates of the centroid of a convex polygon.
 # - Check if a convex polygon is regular.
 # - Compute the intersection of two convex polygons.
 # - Compute the convex union of two convex polygons.
@@ -23,6 +21,38 @@ class ConvexPolygon:
         Creates a new convex polygon that contains all the given points
         """
         self.points = self._convex_hull(points)
+
+
+    def _segments(self):
+        """
+        Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]
+        """
+        return zip(self.points, self.points[1:] + [self.points[0]])
+
+
+    def area(self):
+        """
+        Returns the area of the polygon
+        """
+        return 0.5 * abs(sum(x0 * y1 - x1 * y0 for ((x0, y0), (x1, y1)) in self._segments()))
+
+
+    def perimeter(self):
+        """
+        Returns the perimeter of the polygon
+        """
+        # Uses Pythagoras' Theorem to calculate distance between all adjacent points, then adds them up
+        return sum([math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) for ((x0, y0), (x1, y1)) in self._segments()])
+
+
+    def centroid(self):
+        """
+        Returns the centroid of this polygon
+        """
+        A = self.area()
+        x = sum([(x0 + x1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
+        y = sum([(y0 + y1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
+        return [x / (6 * A), y / (6 * A)]
 
 
     def bounding_box(self):
@@ -103,4 +133,6 @@ if __name__ == "__main__":
     poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
     print("done")
     print(poly.vertices)
-    print(poly.bounding_box().vertices)
+    print(poly.centroid())
+    print(poly.area())
+    print(poly.perimeter())
