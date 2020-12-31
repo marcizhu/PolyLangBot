@@ -1,6 +1,8 @@
 import functools # functools.reduce()
 import math      # math.sqrt()
 
+from PIL import Image, ImageDraw # Image drawing functions
+
 # - Check whether a point is inside another convex polygon.
 # - Check whether a convex polygon is inside another convex polygon.
 # - Check if a convex polygon is regular.
@@ -91,6 +93,33 @@ class ConvexPolygon:
     # Property to access vertices
     vertices = property(get_vertices, set_vertices)
 
+
+    def draw(self, img, color, aabb = None):
+        dib = ImageDraw.Draw(img)
+
+        if aabb == None:
+            aabb = self.bounding_box();
+
+        x_coord = [p[0] for p in aabb.points]
+        y_coord = [p[1] for p in aabb.points]
+
+        x_min = min(x_coord)
+        x_max = max(x_coord)
+        y_min = min(y_coord)
+        y_max = max(y_coord)
+
+        pts = []
+        for x, y in self.points:
+            # Rescale according to the given bounding box so that it fits on the center with 2px of margin on each side
+            x = (x - x_min) / (x_max - x_min) * (img.width  - 5) + 2;
+            y = (y - y_min) / (y_max - y_min) * (img.height - 5) + 2;
+            pts.append((x, y))
+
+        print(pts)
+        dib.polygon(pts, color)
+        return img
+
+
     @property
     def n_vertices(self):
         """
@@ -141,3 +170,7 @@ if __name__ == "__main__":
     print(poly.centroid())
     print(poly.area())
     print(poly.perimeter())
+
+    img = Image.new('RGB', (400, 400), 'White')
+    poly.draw(img, 'Red')
+    img.save('test-img.png')
