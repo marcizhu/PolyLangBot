@@ -106,20 +106,14 @@ class ConvexPolygon:
         dib = ImageDraw.Draw(img)
 
         if aabb == None:
-            aabb = self.bounding_box();
+            aabb = self.bounding_box()
 
-        x_coord = [p[0] for p in aabb.points]
-        y_coord = [p[1] for p in aabb.points]
+        flatten = lambda l: sum(l, [])
+        x_min = min(flatten(aabb.points))
+        x_max = max(flatten(aabb.points))
 
-        x_min = min(x_coord)
-        x_max = max(x_coord)
-        y_min = min(y_coord)
-        y_max = max(y_coord)
-
-        rescale_x = lambda x: (x - x_min) / (x_max - x_min) * (img.width  - 5) + 2
-        rescale_y = lambda y: (y - y_min) / (y_max - y_min) * (img.height - 5) + 2
-        pts = [(rescale_x(x), rescale_y(y)) for x,y in self.points]
-
+        rescale = lambda x, w: (x - x_min) / (x_max - x_min) * (w  - 5) + 2
+        pts = [(rescale(x, img.width), rescale(y, img.height)) for x,y in self.points]
         dib.polygon(pts, color)
 
 
@@ -147,7 +141,7 @@ class ConvexPolygon:
             return (a > b) - (a < b)
 
         def turn(p, q, r):
-            return cmp((q[0] - p[0])*(r[1] - p[1]) - (r[0] - p[0])*(q[1] - p[1]), 0)
+            return cmp((q[0] - p[0]) * (r[1] - p[1]) - (r[0] - p[0]) * (q[1] - p[1]), 0)
 
         def _keep_left(hull, r):
             while len(hull) > 1 and turn(hull[-2], hull[-1], r) == TURN_RIGHT: # =! TURN_LEFT
@@ -165,6 +159,7 @@ class ConvexPolygon:
 if __name__ == "__main__":
     poly = ConvexPolygon()
     triangle = ConvexPolygon([[2.5, 2.5], [7.5, 2.5], [5.0, 5.0]])
+    square = ConvexPolygon([[1.0, 1.0], [2.0, 1.0], [1.0, 2.0], [2.0,2.0]])
     poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
     
     print(poly.vertices)
@@ -173,8 +168,9 @@ if __name__ == "__main__":
     print(poly.perimeter())
 
     img = Image.new('RGB', (400, 400), 'White')
-    aabb = poly.union(triangle).bounding_box()
+    aabb = poly.union(triangle).union(square).bounding_box()
     poly.draw(img, 'Green', aabb)
     triangle.draw(img, 'Blue', aabb)
+    square.draw(img, 'Red', aabb)
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save('test-img.png')
