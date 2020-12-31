@@ -7,7 +7,6 @@ from PIL import Image, ImageDraw # Image drawing functions
 # - Check whether a convex polygon is inside another convex polygon.
 # - Check if a convex polygon is regular.
 # - Compute the intersection of two convex polygons.
-# - Draw convex polygons (with colors) in a PNG image.
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
 # Specification and documentation of its public operations.
@@ -17,38 +16,33 @@ from PIL import Image, ImageDraw # Image drawing functions
 
 class ConvexPolygon:
     def __init__(self, points = []):
-        """
-        Creates a new convex polygon that contains all the given points
-        """
+        """Creates a new convex polygon that contains all the given points"""
+
         self.points = self._convex_hull(points)
 
 
     def _segments(self):
-        """
-        Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]
-        """
+        """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
+
         return zip(self.points, self.points[1:] + [self.points[0]])
 
 
     def area(self):
-        """
-        Returns the area of the polygon
-        """
+        """Returns the area of the polygon"""
+
         return 0.5 * abs(sum(x0 * y1 - x1 * y0 for ((x0, y0), (x1, y1)) in self._segments()))
 
 
     def perimeter(self):
-        """
-        Returns the perimeter of the polygon
-        """
+        """Returns the perimeter of the polygon"""
+
         # Uses Pythagoras' Theorem to calculate distance between all adjacent points, then adds them up
         return sum([math.sqrt((x0 - x1)**2 + (y0 - y1)**2) for ((x0, y0), (x1, y1)) in self._segments()])
 
 
     def centroid(self):
-        """
-        Returns the centroid of this polygon
-        """
+        """Returns the centroid of this polygon"""
+
         A = self.area()
         x = sum([(x0 + x1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
         y = sum([(y0 + y1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
@@ -56,9 +50,8 @@ class ConvexPolygon:
 
 
     def bounding_box(self):
-        """
-        Returns the Axis-aligned Bounding Box (AABB) of this polygon
-        """
+        """Returns the Axis-aligned Bounding Box (AABB) of this polygon"""
+
         x_coord = [p[0] for p in self.points]
         y_coord = [p[1] for p in self.points]
 
@@ -71,23 +64,20 @@ class ConvexPolygon:
 
 
     def union(self, other):
-        """
-        Computes the convex union of this and the other given polygons
-        """
+        """Computes the convex union of this and the other given polygons"""
+
         return ConvexPolygon(self.points + other.points)
 
 
     def get_vertices(self):
-        """
-        Returns the list of vertices of this polygon
-        """
+        """Returns the list of vertices of this polygon"""
+
         return self.points
     
 
     def set_vertices(self, points):
-        """
-        Sets thhe vertices for this polygon
-        """
+        """Sets thhe vertices for this polygon"""
+
         self.points = self._convex_hull(points)
 
     # Property to access vertices
@@ -95,6 +85,24 @@ class ConvexPolygon:
 
 
     def draw(self, img, color, aabb = None):
+        """Draws this polygon into the given image
+
+        Draws this polygon oon the given image using the given color and,
+        optionally, rescaling the poligon to the given bounding box.
+
+        Parameters
+        ----------
+        img : PIL.Image
+            Image where this polygon will be drawn
+        color : str
+            String containing the color of the polygon to paint
+        aabb : ConvexPolygon
+            Bounding box of the image. This polygon will be used to rescale the
+            poligon so that multiple polygons can be drawn on the same image.
+            Set to None (or don't pass anything) if you want to draw this polygon
+            as big as possible.
+        """
+
         dib = ImageDraw.Draw(img)
 
         if aabb == None:
@@ -108,39 +116,31 @@ class ConvexPolygon:
         y_min = min(y_coord)
         y_max = max(y_coord)
 
-        pts = []
-        for x, y in self.points:
-            # Rescale according to the given bounding box so that it fits on the center with 2px of margin on each side
-            x = (x - x_min) / (x_max - x_min) * (img.width  - 5) + 2;
-            y = (y - y_min) / (y_max - y_min) * (img.height - 5) + 2;
-            pts.append((x, y))
+        rescale_x = lambda x: (x - x_min) / (x_max - x_min) * (img.width  - 5) + 2
+        rescale_y = lambda y: (y - y_min) / (y_max - y_min) * (img.height - 5) + 2
+        pts = [(rescale_x(x), rescale_y(y)) for x,y in self.points]
 
-        print(pts)
         dib.polygon(pts, color)
-        return img
 
 
     @property
     def n_vertices(self):
-        """
-        Returns the number of vertices of this polygon
-        """
+        """Returns the number of vertices of this polygon"""
+
         return len(self.points)
 
 
     @property
     def n_edges(self):
-        """
-        Returns the number of edges of this polygon
-        """
+        """Returns the number of edges of this polygon"""
+
         return len(self.points)
 
 
     @staticmethod
     def _convex_hull(points):
-        """
-        Returns points on convex hull in CCW order according to Graham's scan algorithm. 
-        """
+        """Returns points on convex hull in CCW order according to Graham's scan algorithm. """
+
         TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
 
         def cmp(a, b):
@@ -164,13 +164,17 @@ class ConvexPolygon:
 
 if __name__ == "__main__":
     poly = ConvexPolygon()
+    triangle = ConvexPolygon([[2.5, 2.5], [7.5, 2.5], [5.0, 5.0]])
     poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
-    print("done")
+    
     print(poly.vertices)
     print(poly.centroid())
     print(poly.area())
     print(poly.perimeter())
 
     img = Image.new('RGB', (400, 400), 'White')
-    poly.draw(img, 'Red')
+    aabb = poly.union(triangle).bounding_box()
+    poly.draw(img, 'Green', aabb)
+    triangle.draw(img, 'Blue', aabb)
+    img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save('test-img.png')
