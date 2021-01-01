@@ -5,7 +5,6 @@ from PIL import Image, ImageDraw # Image drawing functions
 
 # - Check whether a point is inside another convex polygon.
 # - Check whether a convex polygon is inside another convex polygon.
-# - Check if a convex polygon is regular.
 # - Compute the intersection of two convex polygons.
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
@@ -82,6 +81,31 @@ class ConvexPolygon:
 
     # Property to access vertices
     vertices = property(get_vertices, set_vertices)
+
+
+    def is_regular(self):
+        """Returns True if polygon is regular, False otherwise"""
+
+        def angles_are_equal(self):
+            angles = set()
+            for i in range(len(self.points)):
+                p1  = self.points[i]
+                ref = self.points[i - 1]
+                p2  = self.points[i - 2]
+                x1, y1 = p1[0] - ref[0], p1[1] - ref[1]
+                x2, y2 = p2[0] - ref[0], p2[1] - ref[1]
+
+                numer = (x1 * x2 + y1 * y2)
+                denom = math.sqrt((x1**2 + y1**2) * (x2**2 + y2**2))
+                angle = math.acos(numer / denom)
+                angles.add(angle)
+
+            return len(angles) == 1
+
+        def sides_are_equal(self):
+            return len(set([math.sqrt((x0 - x1)**2 + (y0 - y1)**2) for ((x0, y0), (x1, y1)) in self.__segments()])) == 1
+
+        return angles_are_equal(self) and sides_are_equal(self)
 
 
     def draw(self, img, color, aabb = None):
@@ -166,6 +190,8 @@ if __name__ == "__main__":
     print(poly.centroid())
     print(poly.area())
     print(poly.perimeter())
+    print(poly.is_regular())
+    print(square.is_regular())
 
     img = Image.new('RGB', (400, 400), 'White')
     
