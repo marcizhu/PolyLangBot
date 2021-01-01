@@ -14,16 +14,25 @@ from PIL import Image, ImageDraw # Image drawing functions
 # Set of test examples to check the functionality of the class.
 
 class ConvexPolygon:
-    def __init__(self, points = []):
-        """Creates a new convex polygon that contains all the given points"""
+    def __init__(self, points = [], color = (0, 0, 0)):
+        """Creates a new convex polygon that contains all the given points
 
-        self.points = self.__convex_hull(points)
+        Parameters
+        ----------
+        points : list
+            List of points in the format [[x0, y0], [x1, y1], ... [xn, yn]] that this polygon will contain
+        color : color
+            Color of this polygon by default. It defaults to black
+        """
+
+        self.__points = self.__convex_hull(points)
+        self.color = color
 
 
     def __segments(self):
         """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
 
-        return zip(self.points, self.points[1:] + [self.points[0]])
+        return zip(self.__points, self.__points[1:] + [self.__points[0]])
 
 
     def area(self):
@@ -51,8 +60,8 @@ class ConvexPolygon:
     def bounding_box(self):
         """Returns the Axis-aligned Bounding Box (AABB) of this polygon"""
 
-        x_coord = [p[0] for p in self.points]
-        y_coord = [p[1] for p in self.points]
+        x_coord = [p[0] for p in self.__points]
+        y_coord = [p[1] for p in self.__points]
 
         x_min = min(x_coord)
         x_max = max(x_coord)
@@ -65,19 +74,19 @@ class ConvexPolygon:
     def union(self, other):
         """Computes the convex union of this and the other given polygons"""
 
-        return ConvexPolygon(self.points + other.points)
+        return ConvexPolygon(self.__points + other.__points)
 
 
     def get_vertices(self):
         """Returns the list of vertices of this polygon"""
 
-        return self.points
+        return self.__points
     
 
     def set_vertices(self, points):
         """Sets thhe vertices for this polygon"""
 
-        self.points = self.__convex_hull(points)
+        self.__points = self.__convex_hull(points)
 
     # Property to access vertices
     vertices = property(get_vertices, set_vertices)
@@ -88,17 +97,13 @@ class ConvexPolygon:
 
         def angles_are_equal(self):
             angles = set()
-            for i in range(len(self.points)):
-                p1  = self.points[i]
-                ref = self.points[i - 1]
-                p2  = self.points[i - 2]
+            for p1, ref, p2 in zip(self.__points, self.__points[1:] + [self.__points[0]], self.__points[2:] + self.__points[:2]):
                 x1, y1 = p1[0] - ref[0], p1[1] - ref[1]
                 x2, y2 = p2[0] - ref[0], p2[1] - ref[1]
 
-                numer = (x1 * x2 + y1 * y2)
-                denom = math.sqrt((x1**2 + y1**2) * (x2**2 + y2**2))
-                angle = math.acos(numer / denom)
-                angles.add(angle)
+                dot   = x1 * x2 + y1 * y2 # dot product
+                cross = x1 * y2 - y1 * x2 # cross product
+                angles.add(math.atan2(cross, dot))
 
             return len(angles) == 1
 
@@ -108,7 +113,7 @@ class ConvexPolygon:
         return angles_are_equal(self) and sides_are_equal(self)
 
 
-    def draw(self, img, color, aabb = None):
+    def draw(self, img, aabb = None):
         """Draws this polygon into the given image
 
         Draws this polygon oon the given image using the given color and,
@@ -133,26 +138,26 @@ class ConvexPolygon:
             aabb = self.bounding_box()
 
         flatten = lambda l: sum(l, [])
-        x_min = min(flatten(aabb.points))
-        x_max = max(flatten(aabb.points))
+        x_min = min(flatten(aabb.__points))
+        x_max = max(flatten(aabb.__points))
 
         rescale = lambda x, w: (x - x_min) / (x_max - x_min) * (w  - 5) + 2
-        pts = [(rescale(x, img.width), rescale(y, img.height)) for x,y in self.points]
-        dib.polygon(pts, color)
+        pts = [(rescale(x, img.width), rescale(y, img.height)) for x,y in self.__points]
+        dib.polygon(pts, self.color)
 
 
     @property
     def n_vertices(self):
         """Returns the number of vertices of this polygon"""
 
-        return len(self.points)
+        return len(self.__points)
 
 
     @property
     def n_edges(self):
         """Returns the number of edges of this polygon"""
 
-        return len(self.points)
+        return len(self.__points)
 
 
     @staticmethod
@@ -181,10 +186,9 @@ class ConvexPolygon:
 
 
 if __name__ == "__main__":
-    poly = ConvexPolygon()
-    poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
+    poly     = ConvexPolygon([[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]])
+    square   = ConvexPolygon([[1.0, 1.0], [2.0, 1.0], [1.0, 2.0], [2.0, 2.0]])
     triangle = ConvexPolygon([[2.5, 2.5], [7.5, 2.5], [5.0, 5.0]])
-    square = ConvexPolygon([[1.0, 1.0], [2.0, 1.0], [1.0, 2.0], [2.0,2.0]])
     
     print(poly.vertices)
     print(poly.centroid())
@@ -199,9 +203,14 @@ if __name__ == "__main__":
         .union(triangle) \
         .union(square)
     
-    aabb.draw(img, 'Pink')
-    poly.draw(img, 'Green', aabb)
-    triangle.draw(img, 'Blue', aabb)
-    square.draw(img, 'Red', aabb)
+    aabb.color = 'Pink'
+    poly.color = 'Green'
+    triangle.color = 'Blue'
+    square.color = (252, 186, 3)
+
+    aabb.draw(img)
+    poly.draw(img, aabb)
+    triangle.draw(img, aabb)
+    square.draw(img, aabb)
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save('test-img.png')
