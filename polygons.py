@@ -18,10 +18,10 @@ class ConvexPolygon:
     def __init__(self, points = []):
         """Creates a new convex polygon that contains all the given points"""
 
-        self.points = self._convex_hull(points)
+        self.points = self.__convex_hull(points)
 
 
-    def _segments(self):
+    def __segments(self):
         """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
 
         return zip(self.points, self.points[1:] + [self.points[0]])
@@ -30,22 +30,22 @@ class ConvexPolygon:
     def area(self):
         """Returns the area of the polygon"""
 
-        return 0.5 * abs(sum(x0 * y1 - x1 * y0 for ((x0, y0), (x1, y1)) in self._segments()))
+        return 0.5 * abs(sum(x0 * y1 - x1 * y0 for ((x0, y0), (x1, y1)) in self.__segments()))
 
 
     def perimeter(self):
         """Returns the perimeter of the polygon"""
 
         # Uses Pythagoras' Theorem to calculate distance between all adjacent points, then adds them up
-        return sum([math.sqrt((x0 - x1)**2 + (y0 - y1)**2) for ((x0, y0), (x1, y1)) in self._segments()])
+        return sum([math.sqrt((x0 - x1)**2 + (y0 - y1)**2) for ((x0, y0), (x1, y1)) in self.__segments()])
 
 
     def centroid(self):
         """Returns the centroid of this polygon"""
 
         A = self.area()
-        x = sum([(x0 + x1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
-        y = sum([(y0 + y1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self._segments()])
+        x = sum([(x0 + x1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self.__segments()])
+        y = sum([(y0 + y1) * (x0 * y1 - x1 * y0) for ((x0, y0), (x1, y1)) in self.__segments()])
         return [x / (6 * A), y / (6 * A)]
 
 
@@ -78,7 +78,7 @@ class ConvexPolygon:
     def set_vertices(self, points):
         """Sets thhe vertices for this polygon"""
 
-        self.points = self._convex_hull(points)
+        self.points = self.__convex_hull(points)
 
     # Property to access vertices
     vertices = property(get_vertices, set_vertices)
@@ -96,7 +96,7 @@ class ConvexPolygon:
             Image where this polygon will be drawn
         color : str
             String containing the color of the polygon to paint
-        aabb : ConvexPolygon
+        aabb : ConvexPolygon (optional)
             Bounding box of the image. This polygon will be used to rescale the
             poligon so that multiple polygons can be drawn on the same image.
             Set to None (or don't pass anything) if you want to draw this polygon
@@ -132,7 +132,7 @@ class ConvexPolygon:
 
 
     @staticmethod
-    def _convex_hull(points):
+    def __convex_hull(points):
         """Returns points on convex hull in CCW order according to Graham's scan algorithm. """
 
         TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
@@ -158,9 +158,9 @@ class ConvexPolygon:
 
 if __name__ == "__main__":
     poly = ConvexPolygon()
+    poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
     triangle = ConvexPolygon([[2.5, 2.5], [7.5, 2.5], [5.0, 5.0]])
     square = ConvexPolygon([[1.0, 1.0], [2.0, 1.0], [1.0, 2.0], [2.0,2.0]])
-    poly.vertices = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
     
     print(poly.vertices)
     print(poly.centroid())
@@ -168,7 +168,12 @@ if __name__ == "__main__":
     print(poly.perimeter())
 
     img = Image.new('RGB', (400, 400), 'White')
-    aabb = poly.union(triangle).union(square).bounding_box()
+    
+    aabb = poly          \
+        .union(triangle) \
+        .union(square)
+    
+    aabb.draw(img, 'Pink')
     poly.draw(img, 'Green', aabb)
     triangle.draw(img, 'Blue', aabb)
     square.draw(img, 'Red', aabb)
