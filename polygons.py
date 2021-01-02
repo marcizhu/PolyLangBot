@@ -3,8 +3,6 @@ import math      # math.sqrt()
 
 from PIL import Image, ImageDraw # Image drawing functions
 
-# - Check whether a point is inside another convex polygon.
-# - Check whether a convex polygon is inside another convex polygon.
 # - Compute the intersection of two convex polygons.
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
@@ -123,8 +121,6 @@ class ConvexPolygon:
         ----------
         img : PIL.Image
             Image where this polygon will be drawn
-        color : str
-            String containing the color of the polygon to paint
         aabb : ConvexPolygon (optional)
             Bounding box of the image. This polygon will be used to rescale the
             poligon so that multiple polygons can be drawn on the same image.
@@ -158,6 +154,28 @@ class ConvexPolygon:
         """Returns the number of edges of this polygon"""
 
         return len(self.__points)
+
+
+    def contains(self, point):
+        """Checks whether the given point or polygon is inside of the polygon"""
+
+        if isinstance(point, ConvexPolygon):
+            return all([self.__contains(p) for p in point.__points])
+        else:
+            return self.__contains(point)
+
+
+    def __contains(self, pt):
+        """Checks whether the given point is inside of the polygon"""
+
+        for p1, p2 in self.__segments():
+            x1, y1 = p2[0] - p1[0], p2[1] - p1[1]
+            x2, y2 = pt[0] - p1[0], pt[1] - p1[1]
+
+            if (x1 * y2 - y1 * x2) < 0:
+                return False
+
+        return True
 
 
     @staticmethod
@@ -196,17 +214,25 @@ if __name__ == "__main__":
     print(poly.perimeter())
     print(poly.is_regular())
     print(square.is_regular())
+    print("Point (1.5, 1.5) is inside: ", square.contains([1.5, 1.5]))
+    print("Point (2.5, 1.5) is inside: ", square.contains([2.5, 1.5]))
+    print("Point (1.5, 2.5) is inside: ", square.contains([1.5, 2.5]))
+    print("Point (0.5, 0.5) is inside: ", square.contains([0.5, 0.5]))
+    print("Point (2.0, 2.0) is inside: ", square.contains([2.0, 2.0]))
 
     img = Image.new('RGB', (400, 400), 'White')
     
     aabb = poly          \
         .union(triangle) \
         .union(square)
+
+    print(aabb.contains(square))
+    print(aabb.contains([10.5, 1.5]))
     
     aabb.color = 'Pink'
     poly.color = 'Green'
     triangle.color = 'Blue'
-    square.color = (252, 186, 3)
+    square.color = (255, 0, 0)
 
     aabb.draw(img)
     poly.draw(img, aabb)
