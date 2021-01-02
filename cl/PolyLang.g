@@ -9,6 +9,7 @@ expr: 'color' IDENTIFIER ',' COLOR
     | AREA expr
     | PERIMETER expr
     | VERTICES expr
+    | EDGES expr
     | CENTROID expr
     | EQUAL expr ',' expr
     | INSIDE expr ',' expr
@@ -35,6 +36,7 @@ PRINT: 'print' ;
 AREA: 'area' ;
 PERIMETER: 'perimeter' ;
 VERTICES: 'vertices' ;
+EDGES: 'edges' ;
 CENTROID: 'centroid' ;
 EQUAL: 'equal' ;
 INSIDE: 'inside' ;
@@ -56,12 +58,12 @@ REAL: [0-9]+ '.' [0-9]+
     | '.' [0-9]+
     | [0-9]+ ;
 
-COLOR: '{' REAL REAL REAL '}' ;
+COLOR: '{' REAL WS REAL WS REAL '}' ;
 
-POINT: REAL REAL;
+POINT: REAL WS REAL;
 
-NEWLINE : [\r\n]+ ;
+NEWLINE : [\r\n]+ -> skip ;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip ;
 
-WS : [ \n]+ -> skip ;
+WS : [ \t\n]+ -> skip ;

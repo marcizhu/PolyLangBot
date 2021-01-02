@@ -289,41 +289,64 @@ class TreeVisitor(PolyLangVisitor):
 
         l = [n for n in ctx.getChildren()]
         token = l[0].getSymbol().type
-        print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
-        print([str(elem) for elem in l])
-        print("---")
+        #print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
+        #print([str(elem) for elem in l])
+        #print("---")
 
-        if   token == PolyLangParser.PRINT: return l[1]
-        elif token == PolyLangParser.LPARENS: return self.visit(l[1])
+        if   token == PolyLangParser.LPARENS: return self.visit(l[1])
+        elif token == PolyLangParser.PRINT:
+            if hasattr(l[1], 'getSymbol'):
+                # most definitely string
+                return l[1].getText() if l[1].getSymbol().type == PolyLangParser.STRING else "???"
+            return self.visit(l[1])
         elif token == PolyLangParser.IDENTIFIER:
             if len(l) == 3 and l[1].getSymbol().type == PolyLangParser.ASSIGNMENT:
-                print(l[0].getText())
+                # IDENTIFIER ':=' expr
                 self.__polygons[l[0].getText()] = self.visit(l[2])
+            elif len(l) == 1:
+                # IDENTIFIER
+                if l[0].getText() not in self.__polygons:
+                    return "ERROR: undefined identifier '" + l[0].getText() + "'"
+
+                print(self.__polygons[l[0].getText()])
+
         elif token == PolyLangParser.LBRACKET:
-            pts = [str(x).strip() for x in l[1:len(l)-1]]
+            # '[' POINT* ']'
+            pts = [str(x) for x in l[1:len(l)-1]]
             args = [Point(float(l.split(' ')[0]), float(l.split(' ')[1])) for l in pts]
             return ConvexPolygon(args)
 
+        elif token == PolyLangParser.AREA:
+            poly = self.visit(l[1])
+            return poly.area()
 
+        elif token == PolyLangParser.PERIMETER:
+            poly = self.visit(l[1])
+            return poly.perimeter()
 
-#AREA
-#PERIMETER
-#VERTICES
+        elif token == PolyLangParser.VERTICES:
+            poly = self.visit(l[1])
+            return poly.n_vertices
+
+        elif token == PolyLangParser.EDGES:
+            poly = self.visit(l[1])
+            return poly.n_vertices
+
+        elif token == PolyLangParser.EDGES:
+            poly = self.visit(l[1])
+            return poly.n_vertices
+
 #CENTROID
 #EQUAL
 #INSIDE
 #DRAW
-#expr
-#expr
-#BOUNDING
+#expr UNION expr
+#expr INTERSECTION expr
+#BOUNDING_BOX
 #RANDOM_SAMPLE
-#LPARENS
 #IDENTIFIER
 #IDENTIFIER
-#POINT
-
-        #print([str(elem) for elem in l])
-        
+#POINT  
 
 
 if __name__ == "__main__":
@@ -380,6 +403,8 @@ if __name__ == "__main__":
 
     print("-------------------")
 
+    visitor = TreeVisitor()
+
     while True:
         input_stream = InputStream(input(">>> "))
         lexer = PolyLangLexer(input_stream)
@@ -387,6 +412,5 @@ if __name__ == "__main__":
         parser = PolyLangParser(token_stream)
         tree = parser.prog()
         #print(tree.toStringTree(recog=parser))
-        visitor = TreeVisitor()
         visitor.visit(tree)
 
