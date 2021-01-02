@@ -6,7 +6,9 @@ from PIL import Image, ImageDraw # Image drawing functions
 from antlr4 import *
 from cl.PolyLangLexer import PolyLangLexer
 from cl.PolyLangParser import PolyLangParser
+from cl.PolyLangVisitor import PolyLangVisitor
 
+from sys import stdin
 
 # - Compute the intersection of two convex polygons.
 
@@ -86,6 +88,7 @@ class ConvexPolygon:
         self.color = color
 
     def __str__(self):
+        if len(self.__points) == 0: return "{}"
         return "{" + ", ".join(str(p) for p in [self.__points[0]] + list(reversed(self.__points[1:]))) + "}"
 
 
@@ -271,6 +274,58 @@ class ConvexPolygon:
         return l.extend(u[i] for i in range(1, len(u) - 1)) or l
 
 
+class TreeVisitor(PolyLangVisitor):
+    def __init__(self):
+        self.__polygons = {}
+
+    def visitProg(self, ctx:PolyLangParser.ProgContext):
+        for n in ctx.getChildren():
+            print(self.visit(n))
+
+    def visitExpr(self, ctx:PolyLangParser.ExprContext):
+        #n = next(ctx.getChildren())
+        #if not isinstance(n, PolyLangParser.ExprContext): print("  " * self.nivell + "children:", ctx.getChildCount(), "->", PolyLangParser.symbolicNames[n.getSymbol().type] + '(' +n.getText() + ')')
+        #self.visitChildren(ctx)
+
+        l = [n for n in ctx.getChildren()]
+        token = l[0].getSymbol().type
+        print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
+        print([str(elem) for elem in l])
+        print("---")
+
+        if   token == PolyLangParser.PRINT: return l[1]
+        elif token == PolyLangParser.LPARENS: return self.visit(l[1])
+        elif token == PolyLangParser.IDENTIFIER:
+            if len(l) == 3 and l[1].getSymbol().type == PolyLangParser.ASSIGNMENT:
+                print(l[0].getText())
+                self.__polygons[l[0].getText()] = self.visit(l[2])
+        elif token == PolyLangParser.LBRACKET:
+            pts = [str(x).strip() for x in l[1:len(l)-1]]
+            args = [Point(float(l.split(' ')[0]), float(l.split(' ')[1])) for l in pts]
+            return ConvexPolygon(args)
+
+
+
+#AREA
+#PERIMETER
+#VERTICES
+#CENTROID
+#EQUAL
+#INSIDE
+#DRAW
+#expr
+#expr
+#BOUNDING
+#RANDOM_SAMPLE
+#LPARENS
+#IDENTIFIER
+#IDENTIFIER
+#POINT
+
+        #print([str(elem) for elem in l])
+        
+
+
 if __name__ == "__main__":
     poly     = ConvexPolygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(1.5, 0.5)])
     square   = ConvexPolygon([Point(1.0, 1.0), Point(2.0, 1.0), Point(1.0, 2.0), Point(2.0, 2.0)])
@@ -325,9 +380,13 @@ if __name__ == "__main__":
 
     print("-------------------")
 
-    input_stream = InputStream(input('? '))
-    lexer = PolyLangLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = PolyLangParser(token_stream)
-    tree = parser.prog()
-    print(tree.toStringTree(recog=parser))
+    while True:
+        input_stream = InputStream(input(">>> "))
+        lexer = PolyLangLexer(input_stream)
+        token_stream = CommonTokenStream(lexer)
+        parser = PolyLangParser(token_stream)
+        tree = parser.prog()
+        #print(tree.toStringTree(recog=parser))
+        visitor = TreeVisitor()
+        visitor.visit(tree)
+

@@ -1,33 +1,54 @@
 grammar PolyLang;
 
 prog
-    : expr
-    | (expr NEWLINE)*
-    | EOF;
+    : (expr NEWLINE)* EOF
+    | expr EOF;
 
-expr
-    : 'color' IDENTIFIER ',' COLOR
-    | 'print' (expr | STRING)
-    | 'area' expr
-    | 'perimeter' expr
-    | 'vertices' expr
-    | 'centroid' expr
-    | 'equal' expr ',' expr
-    | 'inside' expr ',' expr
-    | 'draw' STRING ',' expr+
-    | '(' expr ')'
-    | expr '+' expr
-    | expr '*' expr
-    | '#' expr
-    | '!' NUMBER
-    | IDENTIFIER ':=' expr
-    | IDENTIFIER
-    | POLYGON
-    | POINT ;
+expr: 'color' IDENTIFIER ',' COLOR
+    | PRINT (expr | STRING)
+    | AREA expr
+    | PERIMETER expr
+    | VERTICES expr
+    | CENTROID expr
+    | EQUAL expr ',' expr
+    | INSIDE expr ',' expr
+    | DRAW STRING ',' expr+
+    | expr UNION expr
+    | expr INTERSECTION expr
+    | BOUNDING_BOX expr
+    | RANDOM_SAMPLE NUMBER
+    | LPARENS expr RPARENS
+    | IDENTIFIER ASSIGNMENT expr
+    | LBRACKET POINT* RBRACKET
+    | IDENTIFIER ;
+
+LPARENS: '(' ;
+RPARENS: ')' ;
+
+LBRACE: '{' ;
+RBRACE: '}' ;
+
+LBRACKET: '[' ;
+RBRACKET: ']' ;
+
+PRINT: 'print' ;
+AREA: 'area' ;
+PERIMETER: 'perimeter' ;
+VERTICES: 'vertices' ;
+CENTROID: 'centroid' ;
+EQUAL: 'equal' ;
+INSIDE: 'inside' ;
+DRAW: 'draw' ;
+ASSIGNMENT: ':=' ;
+
+UNION: '+' ;
+INTERSECTION: '*' ;
+BOUNDING_BOX: '#' ;
+RANDOM_SAMPLE: '!' ;
 
 IDENTIFIER: [A-Za-z] [A-Za-z_$0-9]* ;
 
-STRING: '"' ([A-Za-z0-9] | ' ' | '\\t' | '\\n' | '\\"' | '.')* '"' ;
+STRING: '"' ( '\\' [\\"] | ~[\\"\r\n] )* '"';
 
 NUMBER: [0-9]+ ;
 
@@ -35,12 +56,12 @@ REAL: [0-9]+ '.' [0-9]+
     | '.' [0-9]+
     | [0-9]+ ;
 
-COLOR: '{' REAL [ \t]+ REAL [ \t]+ REAL '}' ;
+COLOR: '{' REAL REAL REAL '}' ;
 
-POINT: REAL [ \t]+ REAL ;
-
-POLYGON: '[' POINT ([ \t]+ POINT)* ']' ;
+POINT: REAL REAL;
 
 NEWLINE : [\r\n]+ ;
 
-WS : [ \t]+ -> skip ;
+LINE_COMMENT: '//' ~[\r\n]* -> skip ;
+
+WS : [ \n]+ -> skip ;
