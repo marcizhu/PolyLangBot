@@ -3,6 +3,11 @@ import math      # math.atan2()
 
 from PIL import Image, ImageDraw # Image drawing functions
 
+from antlr4 import *
+from cl.PolyLangLexer import PolyLangLexer
+from cl.PolyLangParser import PolyLangParser
+
+
 # - Compute the intersection of two convex polygons.
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
@@ -25,8 +30,11 @@ class Point:
     def __sub__(self, other):
         return Point(self.x - other.x, self.y - other.y)
 
-    def __mul__(self, k):
-        return Point(k * self.x, k * self.y)
+    def __mul__(self, other):
+        return Point(self.x * other.x, self.y * other.y)
+
+    def __truediv__(self, other):
+        return Point(self.x / other.x, self.y / other.y)
 
     def __lt__(self,other):
         return self.x < other.x or (self.x == other.x and self.y < other.y)
@@ -78,7 +86,21 @@ class ConvexPolygon:
         self.color = color
 
     def __str__(self):
-        return "{" + ", ".join(str(p) for p in self.__points) + "}"
+        return "{" + ", ".join(str(p) for p in [self.__points[0]] + list(reversed(self.__points[1:]))) + "}"
+
+
+    def __iter__(self):
+        """Return points in the polygon in order"""
+        for p in [self.__points[0]] + list(reversed(self.__points[1:])):
+            yield p
+
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.points == other.points
+        else:
+            return False
+
 
     def __segments(self):
         """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
@@ -179,8 +201,13 @@ class ConvexPolygon:
         x_min = min([min(p.x, p.y) for p in aabb.__points])
         x_max = max([max(p.x, p.y) for p in aabb.__points])
 
-        rescale = lambda x, w: (x - x_min) / (x_max - x_min) * (w - 5) + 2
-        pts = [(rescale(p.x, img.width), rescale(p.y, img.height)) for p in self.__points]
+        p_min = Point(x_min, x_min)
+        p_max = Point(x_max, x_max)
+        p_dim = Point(img.width, img.height)
+
+        rescale = lambda p: (p - p_min) / (p_max - p_min) * (p_dim - Point(5, 5)) + Point(2, 2)
+        p_tuple = lambda p: (p.x, p.y)
+        pts = [p_tuple(rescale(p)) for p in self.__points]
         dib.polygon(pts, self.color)
 
 
@@ -193,12 +220,17 @@ class ConvexPolygon:
     @property
     def n_edges(self):
         """Returns the number of edges of this polygon"""
+        if len(self.__points) <= 1:
+            return 0
+        elif len(self.__points) == 2:
+            return 1
+
         return len(self.__points)
 
 
     def contains(self, point):
         """Checks whether the given point or polygon is inside of the polygon"""
-        if isinstance(point, ConvexPolygon):
+        if isinstance(point, self.__class__):
             return all([self.__contains(p) for p in point.__points])
         elif isinstance(point, list):
             return all([self.__contains(p) for p in point])
@@ -243,6 +275,20 @@ if __name__ == "__main__":
     poly     = ConvexPolygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(1.5, 0.5)])
     square   = ConvexPolygon([Point(1.0, 1.0), Point(2.0, 1.0), Point(1.0, 2.0), Point(2.0, 2.0)])
     triangle = ConvexPolygon([Point(2.5, 2.5), Point(7.5, 2.5), Point(5.0, 5.0)])
+    p1       = ConvexPolygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(0.2, 0.8)])
+
+    print(p1)
+    print(p1.area())
+    print(p1.perimeter())
+    print(p1.n_vertices)
+    print(p1.centroid())
+
+    print("---")
+
+    p2 = ConvexPolygon([Point(0.0, 0.0), Point(1.0, 0.0), Point(1.0, 1.0)])
+    print(p2)
+    print("yes" if p2.contains(p1) else "no")
+    print("yes" if p2.contains(Point(0.8, 0.2)) else "no")
     
     print("poly = ", poly)
     print(poly.centroid())
@@ -276,3 +322,12 @@ if __name__ == "__main__":
     square.draw(img, aabb)
     img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img.save('test-img.png')
+
+    print("-------------------")
+
+    input_stream = InputStream(input('? '))
+    lexer = PolyLangLexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = PolyLangParser(token_stream)
+    tree = parser.prog()
+    print(tree.toStringTree(recog=parser))
