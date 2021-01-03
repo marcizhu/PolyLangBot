@@ -1,8 +1,10 @@
 grammar PolyLang;
 
-prog: expr (NEWLINE expr)* | ;
+prog: (expr NEWLINE*)* ;
 
 expr: COLOR IDENTIFIER ',' COLOR_RGB
+    | expr UNION expr
+    | expr INTERSECTION expr
     | PRINT (expr | STRING)
     | AREA expr
     | PERIMETER expr
@@ -12,8 +14,6 @@ expr: COLOR IDENTIFIER ',' COLOR_RGB
     | EQUAL expr ',' expr
     | INSIDE expr ',' expr
     | DRAW STRING (',' expr)+
-    | expr UNION expr
-    | expr INTERSECTION expr
     | BOUNDING_BOX expr
     | RANDOM_SAMPLE NUMBER
     | LPARENS expr RPARENS
@@ -61,7 +61,7 @@ COLOR_RGB: '{' REAL WS REAL WS REAL '}' ;
 
 POINT: REAL WS REAL;
 
-NEWLINE : [\r\n]+ -> skip ;
+NEWLINE : [\r\n]+ ;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip ;
 

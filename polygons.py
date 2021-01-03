@@ -4,13 +4,6 @@ import random    # random.uniform()
 
 from PIL import Image, ImageDraw # Image drawing functions
 
-from antlr4 import *
-from cl.PolyLangLexer import PolyLangLexer
-from cl.PolyLangParser import PolyLangParser
-from cl.PolyLangVisitor import PolyLangVisitor
-
-from sys import stdin
-
 # - Compute the intersection of two convex polygons.
 
 # Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
@@ -20,9 +13,6 @@ from sys import stdin
 # Set of test examples to check the functionality of the class.
 
 class Point:
-    """
-    Класс может использоваться для обозначения точки или вектора на плоскости.
-    """
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
@@ -101,7 +91,7 @@ class ConvexPolygon:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.points == other.points
+            return self.__points == other.__points
         else:
             return False
 
@@ -273,196 +263,3 @@ class ConvexPolygon:
         l = functools.reduce(_keep_left, points, [])
         u = functools.reduce(_keep_left, reversed(points), [])
         return l.extend(u[i] for i in range(1, len(u) - 1)) or l
-
-
-class TreeVisitor(PolyLangVisitor):
-    def __init__(self):
-        self.__polygons = {}
-
-    def visitProg(self, ctx:PolyLangParser.ProgContext):
-        for n in ctx.getChildren():
-            try:
-                ret = self.visit(n)
-                print("undefined" if ret is None else ret)
-            except ReferenceError as ref:
-                print(ref)
-
-
-    def getPolygon(self, identifier):
-        if identifier not in self.__polygons:
-            raise ReferenceError("ERROR: undefined identifier '" + identifier + "'")
-
-        return self.__polygons[identifier]
-
-
-    def visitExpr(self, ctx:PolyLangParser.ExprContext):
-        l = [n for n in ctx.getChildren()]
-        token = l[0].getSymbol().type
-        #print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
-        #print([str(elem) for elem in l])
-        #print("---")
-
-        if token == PolyLangParser.LPARENS:
-            return self.visit(l[1])
-
-        elif token == PolyLangParser.PRINT:
-            if hasattr(l[1], 'getSymbol'):
-                return l[1].getText()[1:-1] if l[1].getSymbol().type == PolyLangParser.STRING else "???"
-
-            return self.visit(l[1])
-
-        elif token == PolyLangParser.IDENTIFIER:
-            if len(l) == 3 and l[1].getSymbol().type == PolyLangParser.ASSIGNMENT:
-                # IDENTIFIER ':=' expr
-                self.__polygons[l[0].getText()] = self.visit(l[2])
-            elif len(l) == 1:
-                # IDENTIFIER
-                return self.getPolygon(l[0].getText())
-
-        elif token == PolyLangParser.LBRACKET:
-            # '[' POINT* ']'
-            pts = [str(x) for x in l[1:-1]]
-            args = [Point(float(l.split(' ')[0]), float(l.split(' ')[1])) for l in pts]
-            return ConvexPolygon(args)
-
-        elif token == PolyLangParser.COLOR:
-            poly = self.getPolygon(l[1].getText())
-            colors = l[3].getText()[1:-1].split(' ')
-            float2int = lambda f: int(float(f) * 255)
-            poly.color = (float2int(colors[0]), float2int(colors[1]), float2int(colors[2]))
-
-        elif token == PolyLangParser.AREA:
-            poly = self.visit(l[1])
-            return poly.area()
-
-        elif token == PolyLangParser.PERIMETER:
-            poly = self.visit(l[1])
-            return poly.perimeter()
-
-        elif token == PolyLangParser.VERTICES:
-            poly = self.visit(l[1])
-            return poly.n_vertices
-
-        elif token == PolyLangParser.EDGES:
-            poly = self.visit(l[1])
-            return poly.n_edges
-
-        elif token == PolyLangParser.CENTROID:
-            poly = self.visit(l[1])
-            return poly.centroid()
-
-        elif token == PolyLangParser.BOUNDING_BOX:
-            poly = self.visit(l[1])
-            return poly.bounding_box()
-
-        elif token == PolyLangParser.EQUAL:
-            p1 = self.visit(l[1])
-            p2 = self.visit(l[3])
-            return p1 == p2
-
-        elif token == PolyLangParser.INSIDE:
-            p1 = self.visit(l[1])
-            p2 = self.visit(l[3])
-            return p2.contains(p1)
-
-        elif token == PolyLangParser.DRAW:
-            path = l[1].getText()[1:-1]
-            polygons = [self.visit(l[n]) for n in range(3, len(l)+1, 2)]
-            img = Image.new('RGB', (400, 400), 'White')
-
-            aabb = polygons[0];
-            for poly in polygons[1:]:
-                aabb.union(poly)
-
-            for poly in polygons:
-                poly.draw(img, aabb)
-
-            img = img.transpose(Image.FLIP_TOP_BOTTOM)
-            img.save(path)
-
-        elif token == PolyLangParser.RANDOM_SAMPLE:
-            count = int(l[1].getText())
-            points = [Point(random.uniform(0, 1), random.uniform(0, 1)) for n in range(count)]
-            return ConvexPolygon(points)
-
-        elif l[1].getSymbol().type == PolyLangParser.UNION:
-            p1 = self.visit(l[0])
-            p2 = self.visit(l[2])
-            return p1.union(p2)
-
-        elif l[1].getSymbol().type == PolyLangParser.INTERSECTION:
-            p1 = self.visit(l[0])
-            p2 = self.visit(l[2])
-            print("WARNING: Polygon intersection not yet implemented!")
-            return p1.union(p2) #p1.intersection(p2)
-
-        else:
-            raise SyntaxError("Unknown token")
-
-
-if __name__ == "__main__":
-    poly     = ConvexPolygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(1.5, 0.5)])
-    square   = ConvexPolygon([Point(1.0, 1.0), Point(2.0, 1.0), Point(1.0, 2.0), Point(2.0, 2.0)])
-    triangle = ConvexPolygon([Point(2.5, 2.5), Point(7.5, 2.5), Point(5.0, 5.0)])
-    p1       = ConvexPolygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(0.2, 0.8)])
-
-    print(p1)
-    print(p1.area())
-    print(p1.perimeter())
-    print(p1.n_vertices)
-    print(p1.centroid())
-
-    print("---")
-
-    p2 = ConvexPolygon([Point(0.0, 0.0), Point(1.0, 0.0), Point(1.0, 1.0)])
-    print(p2)
-    print("yes" if p2.contains(p1) else "no")
-    print("yes" if p2.contains(Point(0.8, 0.2)) else "no")
-    
-    print("poly = ", poly)
-    print(poly.centroid())
-    print(poly.area())
-    print(poly.perimeter())
-    print(poly.is_regular())
-    print(square.is_regular())
-    print("Point (1.5, 1.5) is inside: ", square.contains(Point(1.5, 1.5)))
-    print("Point (2.5, 1.5) is inside: ", square.contains(Point(2.5, 1.5)))
-    print("Point (1.5, 2.5) is inside: ", square.contains(Point(1.5, 2.5)))
-    print("Point (0.5, 0.5) is inside: ", square.contains(Point(0.5, 0.5)))
-    print("Point (2.0, 2.0) is inside: ", square.contains(Point(2.0, 2.0)))
-
-    img = Image.new('RGB', (400, 400), 'White')
-    
-    aabb = poly          \
-        .union(triangle) \
-        .union(square)
-
-    print(aabb.contains(square))
-    print(aabb.contains(Point(10.5, 1.5)))
-    
-    aabb.color = 'Pink'
-    poly.color = 'Green'
-    triangle.color = 'Blue'
-    square.color = (255, 0, 0)
-
-    aabb.draw(img)
-    poly.draw(img, aabb)
-    triangle.draw(img, aabb)
-    square.draw(img, aabb)
-    img = img.transpose(Image.FLIP_TOP_BOTTOM)
-    img.save('test-img.png')
-
-    print("-------------------")
-
-    visitor = TreeVisitor()
-
-    try:
-        while True:
-            input_stream = InputStream(input(">>> ")) #FileStream("test.poly")
-            lexer = PolyLangLexer(input_stream)
-            token_stream = CommonTokenStream(lexer)
-            parser = PolyLangParser(token_stream)
-            tree = parser.prog()
-            visitor.visit(tree)
-    except:
-        print("\nBye bye")
