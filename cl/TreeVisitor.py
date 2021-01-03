@@ -1,8 +1,9 @@
-from antlr4 import *                           # ANTLR4 Classes
-from polygons import *                         # Class ConvexPolygon, class Point
-from cl.PolyLangLexer import PolyLangLexer     # Lexer
-from cl.PolyLangParser import PolyLangParser   # Parser
-from cl.PolyLangVisitor import PolyLangVisitor # Visitor
+from antlr4 import *                            # ANTLR4 Classes
+from polygons import *                          # Class ConvexPolygon, Class Point
+from cl.PolyLangLexer import PolyLangLexer      # Lexer
+from cl.PolyLangParser import PolyLangParser    # Parser
+from cl.PolyLangVisitor import PolyLangVisitor  # Visitor
+
 
 class TreeVisitor(PolyLangVisitor):
     """Visitor class that executes the instructions of the PolyLang language"""
@@ -11,7 +12,7 @@ class TreeVisitor(PolyLangVisitor):
         # Initialize a dictionary to store all polygons
         self.__polygons = {}
 
-    def visitProg(self, ctx:PolyLangParser.ProgContext):
+    def visitProg(self, ctx: PolyLangParser.ProgContext):
         """Visit all childs of a program (expressions) and print their result"""
         for n in ctx.getChildren():
             try:
@@ -26,7 +27,6 @@ class TreeVisitor(PolyLangVisitor):
             except (ReferenceError, SyntaxError) as err:
                 print(err)
 
-
     def getPolygon(self, identifier):
         """Gets a polygon with the given identifier or raises an exception if it is not defined"""
         if identifier not in self.__polygons:
@@ -34,26 +34,23 @@ class TreeVisitor(PolyLangVisitor):
 
         return self.__polygons[identifier]
 
-
-    def visitExpr(self, ctx:PolyLangParser.ExprContext):
+    def visitExpr(self, ctx: PolyLangParser.ExprContext):
         """Visit an expression, recursively evaluating it"""
         l = [n for n in ctx.getChildren()]
 
-        if   hasattr(l[0], 'getSymbol'): token = l[0].getSymbol().type
-        elif hasattr(l[1], 'getSymbol'): token = l[1].getSymbol().type
+        if hasattr(l[0], 'getSymbol'):
+            token = l[0].getSymbol().type
+        elif hasattr(l[1], 'getSymbol'):
+            token = l[1].getSymbol().type
         else:
             token = None
-
-        #print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
-        #print([str(elem) for elem in l])
-        #print("---")
 
         if token == PolyLangParser.LPARENS:
             return self.visit(l[1])
 
         elif token == PolyLangParser.PRINT:
             if hasattr(l[1], 'getSymbol') and l[1].getSymbol().type == PolyLangParser.STRING:
-                return l[1].getText()[1:-1] # String
+                return l[1].getText()[1:-1]  # String
 
             return str(self.visit(l[1]))
 
@@ -72,9 +69,11 @@ class TreeVisitor(PolyLangVisitor):
             return ConvexPolygon(args)
 
         elif token == PolyLangParser.COLOR:
+            def float2int(f):
+                return int(float(f) * 255)
+
             poly = self.getPolygon(l[1].getText())
             colors = l[3].getText()[1:-1].split(' ')
-            float2int = lambda f: int(float(f) * 255)
             poly.color = (float2int(colors[0]), float2int(colors[1]), float2int(colors[2]))
 
         elif token == PolyLangParser.AREA:

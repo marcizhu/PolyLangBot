@@ -1,16 +1,9 @@
-import functools # functools.reduce()
-import math      # math.atan2()
-import random    # random.uniform()
+import functools  # functools.reduce()
+import math       # math.atan2()
+import random     # random.uniform()
 
-from PIL import Image, ImageDraw # Image drawing functions
+from PIL import Image, ImageDraw  # Image drawing functions
 
-# - Compute the intersection of two convex polygons.
-
-# Internal representation of a convex polygon. -> As a list of CCW points in the convex hull
-# Specification and documentation of its public operations.
-# Private operations.
-# Algorithms to perform the required operations efficiently (remember, nlogn is better than n²).
-# Set of test examples to check the functionality of the class.
 
 class Point:
     def __init__(self, x=0, y=0):
@@ -29,22 +22,22 @@ class Point:
     def __truediv__(self, other):
         return Point(self.x / other.x, self.y / other.y)
 
-    def __lt__(self,other):
+    def __lt__(self, other):
         return self.x < other.x or (self.x == other.x and self.y < other.y)
 
-    def __le__(self,other):
+    def __le__(self, other):
         return self < other or self == other
 
-    def __gt__(self,other):
+    def __gt__(self, other):
         return self.x > other.x or (self.x == other.x and self.y > other.y)
 
-    def __ge__(self,other):
+    def __ge__(self, other):
         return self > other or self == other
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
-    def __ne__(self,other):
+    def __ne__(self, other):
         return self.x != other.x or self.y != other.y
 
     def __str__(self):
@@ -65,7 +58,7 @@ class Point:
 
 
 class ConvexPolygon:
-    def __init__(self, points = [], color = (0, 0, 0)):
+    def __init__(self, points=[], color=(0, 0, 0)):
         """Creates a new convex polygon that contains all the given points
 
         Parameters
@@ -79,15 +72,14 @@ class ConvexPolygon:
         self.color = color
 
     def __str__(self):
-        if len(self.__points) == 0: return "{}"
+        if len(self.__points) == 0:
+            return "{}"
         return "{" + ", ".join(str(p) for p in [self.__points[0]] + list(reversed(self.__points[1:]))) + "}"
-
 
     def __iter__(self):
         """Return points in the polygon in order"""
         for p in [self.__points[0]] + list(reversed(self.__points[1:])):
             yield p
-
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -95,22 +87,18 @@ class ConvexPolygon:
         else:
             return False
 
-
     def __segments(self):
         """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
         return zip(self.__points, self.__points[1:] + [self.__points[0]])
-
 
     def area(self):
         """Returns the area of the polygon"""
         return 0.5 * abs(sum(p0.cross(p1) for (p0, p1) in self.__segments()))
 
-
     def perimeter(self):
         """Returns the perimeter of the polygon"""
         # Uses Pythagoras' Theorem to calculate distance between all adjacent points, then adds them up
         return sum([(p0 - p1).magnitude for (p0, p1) in self.__segments()])
-
 
     def centroid(self):
         """Returns the centroid of this polygon"""
@@ -118,7 +106,6 @@ class ConvexPolygon:
         x = sum([(p0.x + p1.x) * p0.cross(p1) for (p0, p1) in self.__segments()]) / (6 * A)
         y = sum([(p0.y + p1.y) * p0.cross(p1) for (p0, p1) in self.__segments()]) / (6 * A)
         return Point(x, y)
-
 
     def bounding_box(self):
         """Returns the Axis-aligned Bounding Box (AABB) of this polygon"""
@@ -132,11 +119,9 @@ class ConvexPolygon:
 
         return ConvexPolygon([Point(x_min, y_min), Point(x_max, y_min), Point(x_max, y_max), Point(x_min, y_max)])
 
-
     def union(self, other):
         """Computes the convex union of this and the other given polygons"""
         return ConvexPolygon(self.__points + other.__points)
-
 
     def intersection(self, other):
         """Compute the intersection between two polygons, p and a"""
@@ -175,11 +160,9 @@ class ConvexPolygon:
 
         return ConvexPolygon(outputList)
 
-
     def get_vertices(self):
         """Returns the list of vertices of this polygon"""
         return self.__points
-    
 
     def set_vertices(self, points):
         """Sets thhe vertices for this polygon"""
@@ -196,8 +179,8 @@ class ConvexPolygon:
                 v1 = p1 - ref
                 v2 = p2 - ref
 
-                dot   = v1.dot(v2)   # dot product
-                cross = v1.cross(v2) # cross product
+                dot = v1.dot(v2)      # dot product
+                cross = v1.cross(v2)  # cross product
                 angles.add(math.atan2(cross, dot))
 
             return len(angles) == 1
@@ -207,8 +190,7 @@ class ConvexPolygon:
 
         return angles_are_equal(self) and sides_are_equal(self)
 
-
-    def draw(self, img, aabb = None):
+    def draw(self, img, aabb=None):
         """Draws this polygon into the given image
 
         Draws this polygon oon the given image using the given color and,
@@ -226,7 +208,7 @@ class ConvexPolygon:
         """
         dib = ImageDraw.Draw(img)
 
-        if aabb == None:
+        if aabb is None:
             aabb = self.bounding_box()
 
         x_min = min([min(p.x, p.y) for p in aabb.__points])
@@ -236,17 +218,17 @@ class ConvexPolygon:
         p_max = Point(x_max, x_max)
         p_dim = Point(img.width, img.height)
 
-        rescale = lambda p: (p - p_min) / (p_max - p_min) * (p_dim - Point(5, 5)) + Point(2, 2)
-        p_tuple = lambda p: (p.x, p.y)
-        pts = [p_tuple(rescale(p)) for p in self.__points]
-        dib.polygon(pts, self.color)
+        def rescale(p):
+            pt = (p - p_min) / (p_max - p_min) * (p_dim - Point(5, 5)) + Point(2, 2)
+            return (pt.x, pt.y)
 
+        pts = [rescale(p) for p in self.__points]
+        dib.polygon(pts, self.color)
 
     @property
     def n_vertices(self):
         """Returns the number of vertices of this polygon"""
         return len(self.__points)
-
 
     @property
     def n_edges(self):
@@ -256,14 +238,12 @@ class ConvexPolygon:
 
         return len(self.__points)
 
-
     def contains(self, point):
         """Checks whether the given point or polygon is inside of the polygon"""
         if isinstance(point, self.__class__):
             return all([self.__contains(p) for p in point.__points])
         elif isinstance(point, Point):
             return self.__contains(point)
-
 
     def __contains(self, pt):
         """Checks whether the given point is inside of the polygon"""
@@ -272,7 +252,6 @@ class ConvexPolygon:
                 return False
 
         return True
-
 
     @staticmethod
     def __convex_hull(points):
@@ -286,7 +265,7 @@ class ConvexPolygon:
             return cmp((q.x - p.x) * (r.y - p.y) - (r.x - p.x) * (q.y - p.y), 0)
 
         def _keep_left(hull, r):
-            while len(hull) > 1 and turn(hull[-2], hull[-1], r) == TURN_RIGHT: # =! TURN_LEFT
+            while len(hull) > 1 and turn(hull[-2], hull[-1], r) == TURN_RIGHT:  # =! TURN_LEFT
                 hull.pop()
             if not len(hull) or hull[-1] != r:
                 hull.append(r)

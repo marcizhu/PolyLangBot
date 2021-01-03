@@ -1,10 +1,11 @@
 import sys
-from polygons import * # Class ConvexPolygon, class Point
+from polygons import *  # Class ConvexPolygon, class Point
 
 from antlr4 import *
-from cl.TreeVisitor import TreeVisitor # Tree Visitor for this language
+from cl.TreeVisitor import TreeVisitor  # Tree Visitor for this language
 from cl.PolyLangLexer import PolyLangLexer
 from cl.PolyLangParser import PolyLangParser
+
 
 def execute(input_stream, visitor):
     try:
