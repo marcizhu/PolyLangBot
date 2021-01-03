@@ -95,7 +95,7 @@ class TreeVisitor(PolyLangVisitor):
 
         elif token == PolyLangParser.CENTROID:
             poly = self.visit(l[1])
-            return poly.centroid()
+            return str(poly.centroid())
 
         elif token == PolyLangParser.REGULAR:
             poly = self.visit(l[1])
