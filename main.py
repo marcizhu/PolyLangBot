@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     #try:
     #while True:
-    input_stream = FileStream("examples/test.poly") #InputStream(input(">>> ")) #FileStream("test.poly")
+    input_stream = FileStream("examples/sample.poly") #InputStream(input(">>> ")) #FileStream("test.poly")
     lexer = PolyLangLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
     parser = PolyLangParser(token_stream)
