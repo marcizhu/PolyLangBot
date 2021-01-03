@@ -1,7 +1,5 @@
-print "begin" // convex union
 poly := [0 0  0 1  1 1  1.5 0.5]
 square := [1.5 1.5  2.5 1.5  1.5 2.5  2.5 2.5]
 color square, {1 0 0}
 color poly, {0 1 0}
 draw "test.png", poly, square
-print "end"

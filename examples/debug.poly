@@ -1,0 +1,29 @@
+poly     := [0.0 0.0  0.0 1.0  1.0 1.0  1.5 0.5]
+square   := [1.0 1.0  2.0 1.0  1.0 2.0  2.0 2.0]
+triangle := [2.5 2.5  7.5 2.5  5.0 5.0]
+
+print poly
+centroid poly
+area poly
+perimeter poly
+// regular poly
+// regular square
+inside [1.5 1.5], square
+inside [2.5 1.5], square
+inside [1.5 2.5], square
+inside [0.5 0.5], square
+inside [2.0 2.0], square
+
+aabb := poly + triangle + square
+
+inside square, aabb
+inside [10.5 1.5], aabb
+
+color aabb, {1 0.706 0.706}
+color poly, {0.059 0.439 0}
+color triangle, {0 0 1}
+color square, {1 0 0}
+
+draw "test-img.png", aabb, poly, triangle, square
+
+print "-------------------"
