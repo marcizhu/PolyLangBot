@@ -1,5 +1,6 @@
 import functools # functools.reduce()
 import math      # math.atan2()
+import random    # random.uniform()
 
 from PIL import Image, ImageDraw # Image drawing functions
 
@@ -280,41 +281,55 @@ class TreeVisitor(PolyLangVisitor):
 
     def visitProg(self, ctx:PolyLangParser.ProgContext):
         for n in ctx.getChildren():
-            print(self.visit(n))
+            try:
+                ret = self.visit(n)
+                print("undefined" if ret is None else ret)
+            except ReferenceError as ref:
+                print(ref)
+
+
+    def getPolygon(self, identifier):
+        if identifier not in self.__polygons:
+            raise ReferenceError("ERROR: undefined identifier '" + identifier + "'")
+
+        return self.__polygons[identifier]
+
 
     def visitExpr(self, ctx:PolyLangParser.ExprContext):
-        #n = next(ctx.getChildren())
-        #if not isinstance(n, PolyLangParser.ExprContext): print("  " * self.nivell + "children:", ctx.getChildCount(), "->", PolyLangParser.symbolicNames[n.getSymbol().type] + '(' +n.getText() + ')')
-        #self.visitChildren(ctx)
-
         l = [n for n in ctx.getChildren()]
         token = l[0].getSymbol().type
         #print(PolyLangParser.symbolicNames[l[0].getSymbol().type])
         #print([str(elem) for elem in l])
         #print("---")
 
-        if   token == PolyLangParser.LPARENS: return self.visit(l[1])
+        if token == PolyLangParser.LPARENS:
+            return self.visit(l[1])
+
         elif token == PolyLangParser.PRINT:
             if hasattr(l[1], 'getSymbol'):
-                # most definitely string
-                return l[1].getText() if l[1].getSymbol().type == PolyLangParser.STRING else "???"
+                return l[1].getText()[1:-1] if l[1].getSymbol().type == PolyLangParser.STRING else "???"
+
             return self.visit(l[1])
+
         elif token == PolyLangParser.IDENTIFIER:
             if len(l) == 3 and l[1].getSymbol().type == PolyLangParser.ASSIGNMENT:
                 # IDENTIFIER ':=' expr
                 self.__polygons[l[0].getText()] = self.visit(l[2])
             elif len(l) == 1:
                 # IDENTIFIER
-                if l[0].getText() not in self.__polygons:
-                    return "ERROR: undefined identifier '" + l[0].getText() + "'"
-
-                print(self.__polygons[l[0].getText()])
+                return self.getPolygon(l[0].getText())
 
         elif token == PolyLangParser.LBRACKET:
             # '[' POINT* ']'
-            pts = [str(x) for x in l[1:len(l)-1]]
+            pts = [str(x) for x in l[1:-1]]
             args = [Point(float(l.split(' ')[0]), float(l.split(' ')[1])) for l in pts]
             return ConvexPolygon(args)
+
+        elif token == PolyLangParser.COLOR:
+            poly = self.getPolygon(l[1].getText())
+            colors = l[3].getText()[1:-1].split(' ')
+            float2int = lambda f: int(float(f) * 255)
+            poly.color = (float2int(colors[0]), float2int(colors[1]), float2int(colors[2]))
 
         elif token == PolyLangParser.AREA:
             poly = self.visit(l[1])
@@ -330,23 +345,59 @@ class TreeVisitor(PolyLangVisitor):
 
         elif token == PolyLangParser.EDGES:
             poly = self.visit(l[1])
-            return poly.n_vertices
+            return poly.n_edges
 
-        elif token == PolyLangParser.EDGES:
+        elif token == PolyLangParser.CENTROID:
             poly = self.visit(l[1])
-            return poly.n_vertices
+            return poly.centroid()
 
-#CENTROID
-#EQUAL
-#INSIDE
-#DRAW
-#expr UNION expr
-#expr INTERSECTION expr
-#BOUNDING_BOX
-#RANDOM_SAMPLE
-#IDENTIFIER
-#IDENTIFIER
-#POINT  
+        elif token == PolyLangParser.BOUNDING_BOX:
+            poly = self.visit(l[1])
+            return poly.bounding_box()
+
+        elif token == PolyLangParser.EQUAL:
+            p1 = self.visit(l[1])
+            p2 = self.visit(l[3])
+            return p1 == p2
+
+        elif token == PolyLangParser.INSIDE:
+            p1 = self.visit(l[1])
+            p2 = self.visit(l[3])
+            return p2.contains(p1)
+
+        elif token == PolyLangParser.DRAW:
+            path = l[1].getText()[1:-1]
+            polygons = [self.visit(l[n]) for n in range(3, len(l)+1, 2)]
+            img = Image.new('RGB', (400, 400), 'White')
+
+            aabb = polygons[0];
+            for poly in polygons[1:]:
+                aabb.union(poly)
+
+            for poly in polygons:
+                poly.draw(img, aabb)
+
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+            img.save(path)
+
+        elif token == PolyLangParser.RANDOM_SAMPLE:
+            count = int(l[1].getText())
+            points = [Point(random.uniform(0, 1), random.uniform(0, 1)) for n in range(count)]
+            return ConvexPolygon(points)
+
+        elif l[1].getSymbol().type == PolyLangParser.UNION:
+            p1 = self.visit(l[0])
+            p2 = self.visit(l[2])
+            return p1.union(p2)
+
+        elif l[1].getSymbol().type == PolyLangParser.INTERSECTION:
+            p1 = self.visit(l[0])
+            p2 = self.visit(l[2])
+            print("WARNING: Polygon intersection not yet implemented!")
+            return p1.union(p2) #p1.intersection(p2)
+
+        else:
+            raise SyntaxError("Unknown token")
 
 
 if __name__ == "__main__":
@@ -405,12 +456,13 @@ if __name__ == "__main__":
 
     visitor = TreeVisitor()
 
-    while True:
-        input_stream = InputStream(input(">>> "))
-        lexer = PolyLangLexer(input_stream)
-        token_stream = CommonTokenStream(lexer)
-        parser = PolyLangParser(token_stream)
-        tree = parser.prog()
-        #print(tree.toStringTree(recog=parser))
-        visitor.visit(tree)
-
+    try:
+        while True:
+            input_stream = InputStream(input(">>> ")) #FileStream("test.poly")
+            lexer = PolyLangLexer(input_stream)
+            token_stream = CommonTokenStream(lexer)
+            parser = PolyLangParser(token_stream)
+            tree = parser.prog()
+            visitor.visit(tree)
+    except:
+        print("\nBye bye")

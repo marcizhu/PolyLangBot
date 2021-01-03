@@ -1,10 +1,8 @@
 grammar PolyLang;
 
-prog
-    : (expr NEWLINE)* EOF
-    | expr EOF;
+prog: expr (NEWLINE expr)* | ;
 
-expr: 'color' IDENTIFIER ',' COLOR
+expr: COLOR IDENTIFIER ',' COLOR_RGB
     | PRINT (expr | STRING)
     | AREA expr
     | PERIMETER expr
@@ -13,7 +11,7 @@ expr: 'color' IDENTIFIER ',' COLOR
     | CENTROID expr
     | EQUAL expr ',' expr
     | INSIDE expr ',' expr
-    | DRAW STRING ',' expr+
+    | DRAW STRING (',' expr)+
     | expr UNION expr
     | expr INTERSECTION expr
     | BOUNDING_BOX expr
@@ -32,6 +30,7 @@ RBRACE: '}' ;
 LBRACKET: '[' ;
 RBRACKET: ']' ;
 
+COLOR: 'color' ;
 PRINT: 'print' ;
 AREA: 'area' ;
 PERIMETER: 'perimeter' ;
@@ -58,7 +57,7 @@ REAL: [0-9]+ '.' [0-9]+
     | '.' [0-9]+
     | [0-9]+ ;
 
-COLOR: '{' REAL WS REAL WS REAL '}' ;
+COLOR_RGB: '{' REAL WS REAL WS REAL '}' ;
 
 POINT: REAL WS REAL;
 
