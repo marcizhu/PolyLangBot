@@ -65,6 +65,6 @@ POINT: REAL WS REAL;
 
 NEWLINE : [\r\n]+ ;
 
-LINE_COMMENT: '//' ~[\r\n]* NEWLINE+ -> skip ;
+LINE_COMMENT: '//' ~[\r\n]* NEWLINE* -> skip ;
 
 WS : [ \t\n]+ -> skip ;
