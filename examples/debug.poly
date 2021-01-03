@@ -6,8 +6,8 @@ print poly
 centroid poly
 area poly
 perimeter poly
-// regular poly
-// regular square
+regular poly
+regular square
 inside [1.5 1.5], square
 inside [2.5 1.5], square
 inside [1.5 2.5], square

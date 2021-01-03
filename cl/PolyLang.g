@@ -7,10 +7,11 @@ expr: COLOR IDENTIFIER ',' COLOR_RGB
     | expr INTERSECTION expr
     | PRINT (expr | STRING)
     | AREA expr
-    | PERIMETER expr
-    | VERTICES expr
-    | EDGES expr
     | CENTROID expr
+    | EDGES expr
+    | PERIMETER expr
+    | REGULAR expr
+    | VERTICES expr
     | EQUAL expr ',' expr
     | INSIDE expr ',' expr
     | DRAW STRING (',' expr)+
@@ -30,18 +31,19 @@ RBRACE: '}' ;
 LBRACKET: '[' ;
 RBRACKET: ']' ;
 
-COLOR: 'color' ;
-PRINT: 'print' ;
 AREA: 'area' ;
-PERIMETER: 'perimeter' ;
-VERTICES: 'vertices' ;
-EDGES: 'edges' ;
 CENTROID: 'centroid' ;
+COLOR: 'color' ;
+DRAW: 'draw' ;
+EDGES: 'edges' ;
 EQUAL: 'equal' ;
 INSIDE: 'inside' ;
-DRAW: 'draw' ;
-ASSIGNMENT: ':=' ;
+PERIMETER: 'perimeter' ;
+PRINT: 'print' ;
+REGULAR: 'regular' ;
+VERTICES: 'vertices' ;
 
+ASSIGNMENT: ':=' ;
 UNION: '+' ;
 INTERSECTION: '*' ;
 BOUNDING_BOX: '#' ;

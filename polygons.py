@@ -138,6 +138,16 @@ class ConvexPolygon:
         return ConvexPolygon(self.__points + other.__points)
 
 
+    def intersection(P, Q):
+        """Compute the intersection between two polygons, p and a"""
+        if P.contains(Q):
+            return Q
+        elif Q.contains(P):
+            return P
+
+        return ConvexPolygon()
+
+
     def get_vertices(self):
         """Returns the list of vertices of this polygon"""
         return self.__points

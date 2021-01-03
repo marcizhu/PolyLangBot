@@ -6,21 +6,25 @@ from cl.PolyLangVisitor import PolyLangVisitor # Visitor
 
 class TreeVisitor(PolyLangVisitor):
     """Visitor class that executes the instructions of the PolyLang language"""
+
     def __init__(self):
+        # Initialize a dictionary to store all polygons
         self.__polygons = {}
 
     def visitProg(self, ctx:PolyLangParser.ProgContext):
-        """Visit all childs of a progra (expressions) and print their result"""
+        """Visit all childs of a program (expressions) and print their result"""
         for n in ctx.getChildren():
             try:
                 ret = self.visit(n)
                 if isinstance(ret, float):
                     print(f"{ret:.3f}")
-                elif ret is not None:
+                elif isinstance(ret, bool):
+                    print("yes" if ret else "no")
+                elif isinstance(ret, str) or isinstance(ret, int):
                     print(ret)
 
-            except ReferenceError as ref:
-                print(ref)
+            except (ReferenceError, SyntaxError) as err:
+                print(err)
 
 
     def getPolygon(self, identifier):
@@ -51,7 +55,7 @@ class TreeVisitor(PolyLangVisitor):
             if hasattr(l[1], 'getSymbol') and l[1].getSymbol().type == PolyLangParser.STRING:
                 return l[1].getText()[1:-1] # String
 
-            return self.visit(l[1])
+            return str(self.visit(l[1]))
 
         elif token == PolyLangParser.IDENTIFIER:
             if len(l) == 3 and l[1].getSymbol().type == PolyLangParser.ASSIGNMENT:
@@ -62,7 +66,7 @@ class TreeVisitor(PolyLangVisitor):
                 return self.getPolygon(l[0].getText())
 
         elif token == PolyLangParser.LBRACKET:
-            # '[' POINT* ']'
+            # Constructor
             pts = [str(x) for x in l[1:-1]]
             args = [Point(float(l.split(' ')[0]), float(l.split(' ')[1])) for l in pts]
             return ConvexPolygon(args)
@@ -93,6 +97,10 @@ class TreeVisitor(PolyLangVisitor):
             poly = self.visit(l[1])
             return poly.centroid()
 
+        elif token == PolyLangParser.REGULAR:
+            poly = self.visit(l[1])
+            return poly.is_regular()
+
         elif token == PolyLangParser.BOUNDING_BOX:
             poly = self.visit(l[1])
             return poly.bounding_box()
@@ -100,12 +108,12 @@ class TreeVisitor(PolyLangVisitor):
         elif token == PolyLangParser.EQUAL:
             p1 = self.visit(l[1])
             p2 = self.visit(l[3])
-            return "yes" if p1 == p2 else "no"
+            return p1 == p2
 
         elif token == PolyLangParser.INSIDE:
             p1 = self.visit(l[1])
             p2 = self.visit(l[3])
-            return "yes" if p2.contains(p1) else "no"
+            return p2.contains(p1)
 
         elif token == PolyLangParser.DRAW:
             path = l[1].getText()[1:-1]
@@ -135,8 +143,7 @@ class TreeVisitor(PolyLangVisitor):
         elif token == PolyLangParser.INTERSECTION:
             p1 = self.visit(l[0])
             p2 = self.visit(l[2])
-            print("WARNING: Polygon intersection not yet implemented!")
-            return p1.union(p2) #p1.intersection(p2)
+            return p1.intersection(p2)
 
         else:
-            raise SyntaxError("Unknown token")
+            raise SyntaxError("ERROR: Unknown token")
