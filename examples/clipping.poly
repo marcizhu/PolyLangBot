@@ -1,0 +1,9 @@
+p1 := [0 0  2 0  0 2  2 2] // Square
+p2 := [0.5 0.5  2.5 2  4.5 0.5] // Triangle
+p3 := p1 * p2
+
+color p1, {0 0 1}
+color p2, {0 1 0}
+color p3, {1 0 0}
+
+draw "clip.png", p1, p2, p3

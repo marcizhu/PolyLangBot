@@ -8,12 +8,12 @@ from cl.PolyLangParser import PolyLangParser
 if __name__ == "__main__":
     visitor = TreeVisitor()
 
-    try:
-        input_stream = FileStream("examples/sample.poly")
-        lexer = PolyLangLexer(input_stream)
-        token_stream = CommonTokenStream(lexer)
-        parser = PolyLangParser(token_stream)
-        tree = parser.prog()
-        visitor.visit(tree)
-    except Exception as e:
-        print("ERROR: Uncaught exception:", e)
+    #try:
+    input_stream = FileStream("examples/clipping.poly")
+    lexer = PolyLangLexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = PolyLangParser(token_stream)
+    tree = parser.prog()
+    visitor.visit(tree)
+    #except Exception as e:
+    #    print("ERROR: Uncaught exception:", e)

@@ -138,14 +138,42 @@ class ConvexPolygon:
         return ConvexPolygon(self.__points + other.__points)
 
 
-    def intersection(P, Q):
+    def intersection(self, other):
         """Compute the intersection between two polygons, p and a"""
-        if P.contains(Q):
-            return Q
-        elif Q.contains(P):
-            return P
+        # Sutherland–Hodgman Polygon Clipping Algorithm
+        def inside(p):
+            return(cp2.x-cp1.x)*(p.y-cp1.y) >= (cp2.y-cp1.y)*(p.x-cp1.x)
 
-        return ConvexPolygon()
+        def computeIntersection(cp1, cp2, e, s):
+            dc = cp1 - cp2
+            dp = s - e
+            n1 = cp1.cross(cp2)
+            n2 = s.cross(e)
+            n3 = 1.0 / (dc.cross(dp))
+            return Point((n1 * dp.x - n2*dc.x) * n3, (n1*dp.y - n2*dc.y) * n3)
+
+        outputList = self.__points
+        cp1 = other.__points[-1]
+
+        for clipVertex in other.__points:
+            cp2 = clipVertex
+            inputList = outputList
+            outputList = []
+            s = inputList[-1]
+
+            for subjectVertex in inputList:
+                e = subjectVertex
+                if inside(e):
+                    if not inside(s):
+                        outputList.append(computeIntersection(cp1, cp2, e, s))
+                    outputList.append(e)
+
+                elif inside(s):
+                    outputList.append(computeIntersection(cp1, cp2, e, s))
+                s = e
+            cp1 = cp2
+
+        return ConvexPolygon(outputList)
 
 
     def get_vertices(self):
