@@ -1,4 +1,4 @@
-# Generated from PolyLang.g by ANTLR 4.7.1
+# Generated from ../cl/PolyLang.g by ANTLR 4.7.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO

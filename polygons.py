@@ -150,7 +150,6 @@ class ConvexPolygon:
     # Property to access vertices
     vertices = property(get_vertices, set_vertices)
 
-
     def is_regular(self):
         """Returns True if polygon is regular, False otherwise"""
         def angles_are_equal(self):
@@ -214,10 +213,8 @@ class ConvexPolygon:
     @property
     def n_edges(self):
         """Returns the number of edges of this polygon"""
-        if len(self.__points) <= 1:
-            return 0
-        elif len(self.__points) == 2:
-            return 1
+        if len(self.__points) == 1 or len(self.__points) == 2:
+            return len(self.__points) - 1
 
         return len(self.__points)
 
@@ -226,9 +223,7 @@ class ConvexPolygon:
         """Checks whether the given point or polygon is inside of the polygon"""
         if isinstance(point, self.__class__):
             return all([self.__contains(p) for p in point.__points])
-        elif isinstance(point, list):
-            return all([self.__contains(p) for p in point])
-        else:
+        elif isinstance(point, Point):
             return self.__contains(point)
 
 
