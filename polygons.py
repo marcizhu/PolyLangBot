@@ -124,7 +124,7 @@ class ConvexPolygon:
         return ConvexPolygon(self.__points + other.__points)
 
     def intersection(self, other):
-        """Compute the intersection between two polygons, p and a"""
+        """Compute the intersection between two polygons, self and other"""
         # Sutherland–Hodgman Polygon Clipping Algorithm
         def inside(p):
             return (cp2.x - cp1.x) * (p.y - cp1.y) >= (cp2.y - cp1.y) * (p.x - cp1.x)
@@ -193,8 +193,10 @@ class ConvexPolygon:
     def draw(self, img, aabb=None):
         """Draws this polygon into the given image
 
-        Draws this polygon on the given image using the polygon's color and,
-        optionally, rescaling the poligon to the given bounding box.
+        Draws this polygon on the given image using the polygon's color and, op-
+        tionally, rescaling the poligon to the given bounding box. The resulting
+        image contains the polygon, with the given AABB centered and with the
+        least possible amount of whhitespace around it.
 
         Parameters
         ----------
@@ -202,9 +204,9 @@ class ConvexPolygon:
             Image where this polygon will be drawn
         aabb : ConvexPolygon (optional)
             Bounding box of the image. This polygon will be used to rescale the
-            poligon so that multiple polygons can be drawn on the same image.
-            Set to None (or don't pass anything) if you want to draw this polygon
-            as big as possible.
+            poligon so that multiple polygons can be drawn on the same image. Set
+            to None (or don't pass anything) if you want to draw this polygon as
+            big as possible.
         """
         dib = ImageDraw.Draw(img)
 
@@ -215,16 +217,16 @@ class ConvexPolygon:
         y_coord = [p.y for p in aabb.__points]
 
         x_min = min(x_coord)
-        x_max = max(x_coord)
         y_min = min(y_coord)
-        y_max = max(y_coord)
+        x_max = max(x_coord) - x_min
+        y_max = max(y_coord) - y_min
 
-        biggest = max(x_max - x_min, y_max - y_min)
-        x_free = ((x_max - x_min) - biggest) / 2
-        y_free = ((y_max - y_min) - biggest) / 2
+        biggest = max(x_max, y_max)
+        x_free = (biggest - x_max) / 2
+        y_free = (biggest - y_max) / 2
 
         def rescale(p):
-            pt = (p - Point(x_min + x_free, y_min + y_free)) / Point(biggest, biggest) * Point(img.width - 5, img.height - 5) + Point(2, 2)
+            pt = (p - Point(x_min, y_min) + Point(x_free, y_free)) / Point(biggest, biggest) * Point(img.width - 5, img.height - 5) + Point(2, 2)
             return (pt.x, pt.y)
 
         pts = [rescale(p) for p in self.__points]
@@ -260,7 +262,7 @@ class ConvexPolygon:
 
     @staticmethod
     def __convex_hull(points):
-        """Returns points on convex hull in CCW order according to Graham's scan algorithm. """
+        """Returns points on convex hull in CCW order according to Graham's scan algorithm"""
         TURN_LEFT, TURN_RIGHT, TURN_NONE = (1, -1, 0)
 
         def cmp(a, b):
