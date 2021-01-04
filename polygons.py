@@ -127,7 +127,7 @@ class ConvexPolygon:
         """Compute the intersection between two polygons, p and a"""
         # Sutherland–Hodgman Polygon Clipping Algorithm
         def inside(p):
-            return(cp2.x-cp1.x)*(p.y-cp1.y) >= (cp2.y-cp1.y)*(p.x-cp1.x)
+            return (cp2.x - cp1.x) * (p.y - cp1.y) >= (cp2.y - cp1.y) * (p.x - cp1.x)
 
         def computeIntersection(cp1, cp2, e, s):
             dc = cp1 - cp2
@@ -135,7 +135,7 @@ class ConvexPolygon:
             n1 = cp1.cross(cp2)
             n2 = s.cross(e)
             n3 = 1.0 / (dc.cross(dp))
-            return Point((n1 * dp.x - n2*dc.x) * n3, (n1*dp.y - n2*dc.y) * n3)
+            return Point((n1 * dp.x - n2 * dc.x) * n3, (n1 * dp.y - n2 * dc.y) * n3)
 
         outputList = self.__points
         cp1 = other.__points[-1]
@@ -193,7 +193,7 @@ class ConvexPolygon:
     def draw(self, img, aabb=None):
         """Draws this polygon into the given image
 
-        Draws this polygon oon the given image using the given color and,
+        Draws this polygon on the given image using the polygon's color and,
         optionally, rescaling the poligon to the given bounding box.
 
         Parameters
