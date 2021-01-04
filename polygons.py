@@ -211,15 +211,20 @@ class ConvexPolygon:
         if aabb is None:
             aabb = self.bounding_box()
 
-        x_min = min([min(p.x, p.y) for p in aabb.__points])
-        x_max = max([max(p.x, p.y) for p in aabb.__points])
+        x_coord = [p.x for p in aabb.__points]
+        y_coord = [p.y for p in aabb.__points]
 
-        p_min = Point(x_min, x_min)
-        p_max = Point(x_max, x_max)
-        p_dim = Point(img.width, img.height)
+        x_min = min(x_coord)
+        x_max = max(x_coord)
+        y_min = min(y_coord)
+        y_max = max(y_coord)
+
+        biggest = max(x_max - x_min, y_max - y_min)
+        x_free = ((x_max - x_min) - biggest) / 2
+        y_free = ((y_max - y_min) - biggest) / 2
 
         def rescale(p):
-            pt = (p - p_min) / (p_max - p_min) * (p_dim - Point(5, 5)) + Point(2, 2)
+            pt = (p - Point(x_min + x_free, y_min + y_free)) / Point(biggest, biggest) * Point(img.width - 5, img.height - 5) + Point(2, 2)
             return (pt.x, pt.y)
 
         pts = [rescale(p) for p in self.__points]
