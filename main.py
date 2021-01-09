@@ -14,7 +14,7 @@ def execute(input_stream, visitor):
         parser = PolyLangParser(token_stream)
         tree = parser.prog()
         visitor.visit(tree)
-        print(visitor.output)
+        print(visitor.output, end='')
     except Exception as e:
         print("ERROR: Uncaught exception:", e)
 
@@ -33,6 +33,10 @@ if __name__ == "__main__":
             print("\nBye bye!")
 
     elif len(sys.argv) == 2 and (sys.argv[1] == "-b" or sys.argv[1] == "--bot"):
+        # Run in 'bot' mode
+        print("Running PolyLang interpreter in \"bot\" mode.")
+        print("Go to https://t.me/PolyLang_bot to start using it!")
+        print("Press Ctrl+C to stop the bot")
         bot.run()
 
     elif len(sys.argv) == 2:
