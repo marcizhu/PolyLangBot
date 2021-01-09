@@ -51,7 +51,7 @@ RANDOM_SAMPLE: '!' ;
 
 IDENTIFIER: [A-Za-z] [A-Za-z_$0-9]* ;
 
-STRING: '"' ( '\\' [\\"] | ~[\\"\r\n] )* '"';
+STRING: '"' ( '\\' [nt] | [\\"] | ~[\\"\r\n] )* '"';
 
 NUMBER: [0-9]+ ;
 

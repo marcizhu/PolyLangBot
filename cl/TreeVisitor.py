@@ -66,7 +66,7 @@ class TreeVisitor(PolyLangVisitor):
 
         elif token == PolyLangParser.PRINT:
             if hasattr(l[1], 'getSymbol') and l[1].getSymbol().type == PolyLangParser.STRING:
-                return l[1].getText()[1:-1]  # String
+                return l[1].getText()[1:-1].replace('\\n', '\n').replace('\\t', '\t').replace('\\"', '\"')  # String
 
             return str(self.visit(l[1]))
 
