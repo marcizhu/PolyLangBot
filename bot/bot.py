@@ -13,7 +13,7 @@ def run():
 
         def img_callback(update, context, path):
             """Image callback. Recieves a path and sends that image through Telegram"""
-            context.bot.send_photo(update.message.text, path)
+            context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(path, 'rb'), caption=path)
 
         def execute(text, visitor):
             """Executes `text` and returns the output. Uses `visitor` to visit the AST"""
