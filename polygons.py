@@ -89,6 +89,9 @@ class ConvexPolygon:
 
     def __segments(self):
         """Returns a list of points like the following: [[x0, y0], [x1, y1], [x2, y2], ..., [xn, yn], [x0, y0]]"""
+        if len(self.__points) == 0:
+            return []
+
         return zip(self.__points, self.__points[1:] + [self.__points[0]])
 
     def area(self):
@@ -174,6 +177,9 @@ class ConvexPolygon:
     def is_regular(self):
         """Returns True if polygon is regular, False otherwise"""
         def angles_are_equal(self):
+            if len(self.__points) <= 2:
+                return False
+
             angles = set()
             for p1, ref, p2 in zip(self.__points, self.__points[1:] + [self.__points[0]], self.__points[2:] + self.__points[:2]):
                 v1 = p1 - ref
@@ -208,10 +214,10 @@ class ConvexPolygon:
             to None (or don't pass anything) if you want to draw this polygon as
             big as possible.
         """
-        dib = ImageDraw.Draw(img)
-
         if aabb is None:
             aabb = self.bounding_box()
+
+        dib = ImageDraw.Draw(img)
 
         x_coord = [p.x for p in aabb.__points]
         y_coord = [p.y for p in aabb.__points]

@@ -5,7 +5,7 @@ from antlr4 import *
 from cl.TreeVisitor import TreeVisitor  # Tree Visitor for this language
 from cl.PolyLangLexer import PolyLangLexer
 from cl.PolyLangParser import PolyLangParser
-
+import bot.bot as bot
 
 def execute(input_stream, visitor):
     try:
@@ -14,11 +14,11 @@ def execute(input_stream, visitor):
         parser = PolyLangParser(token_stream)
         tree = parser.prog()
         visitor.visit(tree)
+        print(visitor.output)
     except Exception as e:
         print("ERROR: Uncaught exception:", e)
 
 if __name__ == "__main__":
-
     if len(sys.argv) == 1 or (len(sys.argv) == 2 and (sys.argv[1] == "-i" or sys.argv[1] == "--interactive")):
         # Run in interactive mode
         print("Welcome to the PolyLang interactive interpreter v0.0.1")
@@ -31,6 +31,9 @@ if __name__ == "__main__":
                 execute(input_stream, visitor)
         except (EOFError, KeyboardInterrupt):
             print("\nBye bye!")
+
+    elif len(sys.argv) == 2 and (sys.argv[1] == "-b" or sys.argv[1] == "--bot"):
+        bot.run()
 
     elif len(sys.argv) == 2:
         input_stream = FileStream(sys.argv[1])
