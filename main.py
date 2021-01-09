@@ -36,7 +36,7 @@ if __name__ == "__main__":
         # Run in 'bot' mode
         print("Running PolyLang interpreter in \"bot\" mode.")
         print("Go to https://t.me/PolyLang_bot to start using it!")
-        print("Press Ctrl+C to stop the bot")
+        print("Press Enter or Ctrl+C to stop the bot")
         bot.run()
 
     elif len(sys.argv) == 2:
