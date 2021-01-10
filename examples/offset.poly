@@ -6,4 +6,4 @@ color p1, {0 0 1} // Blue
 color p2, {0 1 0} // Green
 color p3, {1 0 0} // Red
 
-draw "img.png",p1,p2,p3
+draw "img.png", p1, p2, p3
