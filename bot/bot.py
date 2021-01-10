@@ -34,7 +34,7 @@ def run():
         # previously-created polygons
         ret = execute(update.message.text, context.bot_data[update.effective_chat.id])
 
-        if ret != "":
+        if ret != "```\n\n```":
             # If the execution generated any output, send it to the user
             context.bot.send_message(chat_id=update.effective_chat.id, text=ret, parse_mode=ParseMode.MARKDOWN_V2)
 
