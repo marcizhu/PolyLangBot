@@ -21,7 +21,7 @@ def execute(input_stream, visitor):
 if __name__ == "__main__":
     if len(sys.argv) == 1 or (len(sys.argv) == 2 and (sys.argv[1] == "-i" or sys.argv[1] == "--interactive")):
         # Run in interactive mode
-        print("Welcome to the PolyLang interactive interpreter v0.0.1")
+        print("Welcome to the PolyLang interactive interpreter v1.0.0")
         print("Type your commands followed by an enter to execute them. Press Ctrl+D or Ctrl+C to exit.")
 
         try:

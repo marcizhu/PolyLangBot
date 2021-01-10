@@ -161,7 +161,7 @@ class TreeVisitor(PolyLangVisitor):
 
         elif token == PolyLangParser.RANDOM_SAMPLE:
             count = int(l[1].getText())
-            points = [Point(random.uniform(0, 1), random.uniform(0, 1)) for n in range(count)]
+            points = [Point(random.random(), random.random()) for n in range(count)]
             return ConvexPolygon(points)
 
         elif token == PolyLangParser.UNION:
