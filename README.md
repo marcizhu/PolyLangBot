@@ -48,9 +48,9 @@ Also, a new image should have appeared in your folder, called `image.png`. It sh
 ### Run in bot mode
 To run the interpreter in top mode, you first need to put your Telegram API access token inside a file called `token.txt`. This file should be located inside the folder `bot/`. After that, you can do `python3 main.py --bot` or `python3 main.py -b` for short.
 
-The bot is available at https://t.me/PolyLang_bot and it works just like in iterpreter mode: you type a command, the bot reads it, executes it and sends a message with the output. Same with images: it will render the images and send them to you through Telegram, adding the image file name as a caption.
+The bot is available at https://t.me/PolyLang_bot and it works just like in iterpreter mode: you type a command, the bot reads it, executes it and sends a message with the output. The polygons are saved between messages, so it is possible to use polygons defined in previously sent messages. Also, each chat has its own isolated environment, so it is impossible for different users to interfere with each other.
 
-Please note that, for security reasons, any `draw` command issued through the Telegram API will **NOT** save the image in the computer's hard drive. Instead, it will save the file to memory and send it through Telegram, both to prevent the host hard drive from filling up and also as a security feature in order to prevent accidental or intentional overwriting of the host files. This approach is faster and safer, since the bot is immune to mallicious `draw` commands like:
+Please note that, for security reasons, any `draw` command issued through the Telegram API will **NOT** save the image in the computer's hard drive. Instead, it will save the file to memory and send it through Telegram (with the given file path as caption), both to prevent the host hard drive from filling up and also as a security feature in order to prevent accidental or intentional overwriting of the host files. This approach is faster and safer, since the bot is immune to mallicious `draw` commands like:
 
 ```
 draw "C:\Windows\System32\Kernel32.dll", [0 0 1 1]
@@ -76,4 +76,4 @@ This project was entirely developed by Marc "marcizhu" Izquierdo as an assignmen
 ## License
 Copyright (c) 2021 Marc Izquierdo  
 This library is licensed under the [MIT License](https://choosealicense.com/licenses/mit/). See
-[LICENSE](https://github.com/marcizhu/LP-PolyLangBot/blob/master/LICENSE) for more details.
+[LICENSE](https://github.com/marcizhu/PolyLangBot/blob/master/LICENSE) for more details.
