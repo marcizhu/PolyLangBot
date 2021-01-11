@@ -13,13 +13,15 @@ The interpreter can run in three modes:
 
 
 ### Run in interactive mode
-To run it in this mode, run `python3 main.py --interactive` or `python3 main.py -i` for short. You should see a small prompt. Type your commands, followed by a new line, and the interpreter will execute the instructions and output the result. For example, try this:
+To run it in this mode, run `python3 main.py --interactive` or `python3 main.py -i` for short. You should see a small prompt. Type your commands, hit Enter, and the interpreter will execute the instructions and output the result. For example, try this:
 
 ```
 >>> print "Hello, world!"
 Hello, world!
 >>> 
 ```
+
+To close the interpreter, you can either use <kbd>Ctrl</kbd>+<kbd>C</kbd> or send an EOF (on Linux that's using <kbd>Ctrl</kbd>+<kbd>D</kbd>, on Windows it's <kbd>Ctrl</kbd>+<kbd>Z</kbd>).
 
 ### Run in script mode
 Several sample scripts are given inside the `examples/` folder. Feel free to run any of them. For example, to execute `examples/sample.poly`, do: `python3 main.py examples/sample.poly`. You should see an output similar to this:
@@ -46,9 +48,9 @@ Also, a new image should have appeared in your folder, called `image.png`. It sh
 ![](image.png)
 
 ### Run in bot mode
-To run the interpreter in top mode, you first need to put your Telegram API access token inside a file called `token.txt`. This file should be located inside the folder `bot/`. After that, you can do `python3 main.py --bot` or `python3 main.py -b` for short.
+To run the interpreter in bot mode, you first need to put your Telegram API access token inside a file called `token.txt`. This file should be located inside the folder `bot/`. After that, you can do `python3 main.py --bot` or `python3 main.py -b` for short.
 
-The bot is available at https://t.me/PolyLang_bot and it works just like in iterpreter mode: you type a command, the bot reads it, executes it and sends a message with the output. The polygons are saved between messages, so it is possible to use polygons defined in previously sent messages. Also, each chat has its own isolated environment, so it is impossible for different users to interfere with each other.
+The bot is available at https://t.me/PolyLang_bot and it works just like in iterpreter mode: you type a message with one or several commands, the bot reads it, executes it and sends you a message with the output. The polygons are saved between messages, so it is possible to use polygons defined in previously sent messages. Also, each chat has its own isolated environment, so it is impossible for different users to interfere with each other.
 
 Please note that, for security reasons, any `draw` command issued through the Telegram API will **NOT** save the image in the computer's hard drive. Instead, it will save the file to memory and send it through Telegram (with the given file path as caption), both to prevent the host hard drive from filling up and also as a security feature in order to prevent accidental or intentional overwriting of the host files. This approach is faster and safer, since the bot is immune to mallicious `draw` commands like:
 
@@ -61,7 +63,7 @@ Finally, while the bot is processing a command, it will appear as "typing" on Te
 
 ## Prerequisites
 
-This project require `python-telegram-bot`, `antlr4-python3-runtime` and `pillow`. To intall all of them, you can use `pip`:
+This project requires `python-telegram-bot`, `antlr4-python3-runtime` and `pillow`. To intall all of them, you can use `pip`:
 
 ```
 pip3 install -r requirements.txt
@@ -74,6 +76,6 @@ This project was entirely developed by Marc "marcizhu" Izquierdo as an assignmen
 
 
 ## License
-Copyright (c) 2021 Marc Izquierdo  
+Copyright (c) 2020-2021 Marc Izquierdo  
 This library is licensed under the [MIT License](https://choosealicense.com/licenses/mit/). See
 [LICENSE](https://github.com/marcizhu/PolyLangBot/blob/master/LICENSE) for more details.
