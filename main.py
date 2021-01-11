@@ -7,6 +7,7 @@ from cl.PolyLangLexer import PolyLangLexer
 from cl.PolyLangParser import PolyLangParser
 import bot.bot as bot
 
+
 def execute(input_stream, visitor):
     try:
         lexer = PolyLangLexer(input_stream)

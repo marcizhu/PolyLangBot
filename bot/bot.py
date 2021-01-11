@@ -27,7 +27,7 @@ def run():
                 # Putting text *between asterisks* makes it bold
                 return "*\u26A0 ERROR: Uncaught exception: " + str(e) + " \u26A0*"
 
-        if not update.effective_chat.id in context.bot_data:
+        if update.effective_chat.id not in context.bot_data:
             start(update, context)
 
         # Set the bot status as "Typing..."
@@ -96,6 +96,6 @@ def run():
 
     # Start running
     updater.start_polling()
-    input() # Wait for a newline
+    input()  # Wait for a newline
     print("Exiting...")
     updater.stop()
